@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="app_theme_values" translatable="false">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+    <string-array name="reading_mode_values" translatable="false">
+        <item>continuous</item>
+        <item>paged</item>
+        <item>double</item>
+    </string-array>
+    <string-array name="reader_theme_values" translatable="false">
+        <item>auto</item>
+        <item>light</item>
+        <item>dark</item>
+        <item>sepia</item>
+        <item>inverted</item>
+    </string-array>
+</resources>

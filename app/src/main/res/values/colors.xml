@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="md_primary">#2B5BB5</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#D9E2FF</color>
+    <color name="md_on_primary_container">#001A43</color>
+    <color name="md_secondary">#575E71</color>
+    <color name="md_on_secondary">#FFFFFF</color>
+    <color name="md_secondary_container">#DBE2F9</color>
+    <color name="md_on_secondary_container">#141B2C</color>
+    <color name="md_tertiary">#715573</color>
+    <color name="md_on_tertiary">#FFFFFF</color>
+    <color name="md_tertiary_container">#FBD7FC</color>
+    <color name="md_on_tertiary_container">#29132D</color>
+    <color name="md_error">#BA1A1A</color>
+    <color name="md_background">#FAF9FD</color>
+    <color name="md_on_background">#1B1B1F</color>
+    <color name="md_surface">#FAF9FD</color>
+    <color name="md_on_surface">#1B1B1F</color>
+    <color name="md_surface_variant">#E1E2EC</color>
+    <color name="md_on_surface_variant">#44464F</color>
+    <color name="md_outline">#757780</color>
+    <color name="md_outline_variant">#C5C6D0</color>
+    <color name="md_surface_container_lowest">#FFFFFF</color>
+    <color name="md_surface_container_low">#F4F3F7</color>
+    <color name="md_surface_container">#EEEDF1</color>
+    <color name="md_surface_container_high">#E9E7EC</color>
+    <color name="md_surface_container_highest">#E3E2E6</color>
+
+    <!-- Reader backgrounds (around the pages) -->
+    <color name="reader_bg_light">#E6E6EA</color>
+    <color name="reader_bg_dark">#121214</color>
+    <color name="reader_bg_sepia">#E9DFC8</color>
+    <color name="search_highlight">#66FFC107</color>
+    <color name="search_highlight_current">#99FF5722</color>
+    <color name="selection_highlight">#553D7BE0</color>
+    <color name="tts_highlight">#5534A853</color>
+    <color name="link_highlight">#223D7BE0</color>
+    <color name="form_field_highlight">#333D7BE0</color>
+
+    <!-- Annotation palette -->
+    <color name="annot_yellow">#FFEB3B</color>
+    <color name="annot_green">#66BB6A</color>
+    <color name="annot_blue">#42A5F5</color>
+    <color name="annot_pink">#EC407A</color>
+    <color name="annot_red">#E53935</color>
+    <color name="annot_black">#212121</color>
+
+    <color name="rsvp_focus">#E53935</color>
+    <color name="ic_launcher_background">#2B5BB5</color>
+</resources>

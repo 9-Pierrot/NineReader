@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="tools_grid_columns">4</integer>
+    <integer name="thumbnail_grid_columns">2</integer>
+    <integer name="organize_grid_columns">6</integer>
+    <bool name="anchored_side_panel">true</bool>
+</resources>

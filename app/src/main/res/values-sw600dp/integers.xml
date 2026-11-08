@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="tools_grid_columns">3</integer>
+    <integer name="thumbnail_grid_columns">4</integer>
+    <integer name="organize_grid_columns">5</integer>
+    <bool name="is_tablet">true</bool>
+</resources>

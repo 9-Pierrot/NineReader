@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Page with folded corner -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,28h26l12,12v38c0,2.2 -1.8,4 -4,4H36c-2.2,0 -4,-1.8 -4,-4V32c0,-2.2 1.8,-4 4,-4z" />
+    <path
+        android:fillColor="#C9D6F5"
+        android:pathData="M62,28v8c0,2.2 1.8,4 4,4h8z" />
+    <!-- Stylised nine -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M45,52a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"
+        android:strokeWidth="6"
+        android:strokeColor="#2B5BB5" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M61,52c0,9 -3,17 -12,20"
+        android:strokeWidth="6"
+        android:strokeColor="#2B5BB5"
+        android:strokeLineCap="round" />
+</vector>
