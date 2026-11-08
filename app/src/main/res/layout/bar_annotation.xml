@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurfaceContainerHigh"
+    android:elevation="6dp"
+    android:orientation="vertical">
+
+    <!-- Actions on the selected annotation -->
+    <LinearLayout
+        android:id="@+id/ann_selection_actions"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/ann_selection_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+        <ImageButton
+            android:id="@+id/ann_edit_text"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/edit_text"
+            android:src="@drawable/ic_edit" />
+
+        <ImageButton
+            android:id="@+id/ann_delete"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/delete"
+            android:src="@drawable/ic_delete" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/ann_tools"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="4dp">
+
+            <ImageButton
+                android:id="@+id/tool_select"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_select"
+                android:src="@drawable/ic_touch"
+                android:tooltipText="@string/tool_select" />
+
+            <ImageButton
+                android:id="@+id/tool_highlight"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_highlight"
+                android:src="@drawable/ic_highlight"
+                android:tooltipText="@string/tool_highlight" />
+
+            <ImageButton
+                android:id="@+id/tool_underline"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_underline"
+                android:src="@drawable/ic_underline"
+                android:tooltipText="@string/tool_underline" />
+
+            <ImageButton
+                android:id="@+id/tool_strikeout"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_strikeout"
+                android:src="@drawable/ic_strikethrough"
+                android:tooltipText="@string/tool_strikeout" />
+
+            <ImageButton
+                android:id="@+id/tool_ink"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_ink"
+                android:src="@drawable/ic_brush"
+                android:tooltipText="@string/tool_ink" />
+
+            <ImageButton
+                android:id="@+id/tool_eraser"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_eraser"
+                android:src="@drawable/ic_eraser"
+                android:tooltipText="@string/tool_eraser" />
+
+            <ImageButton
+                android:id="@+id/tool_note"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_note"
+                android:src="@drawable/ic_note"
+                android:tooltipText="@string/tool_note" />
+
+            <ImageButton
+                android:id="@+id/tool_shapes"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_shapes"
+                android:src="@drawable/ic_shapes"
+                android:tooltipText="@string/tool_shapes" />
+
+            <ImageButton
+                android:id="@+id/tool_text"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_text"
+                android:src="@drawable/ic_title"
+                android:tooltipText="@string/tool_text" />
+
+            <ImageButton
+                android:id="@+id/tool_sign"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_signature"
+                android:src="@drawable/ic_signature"
+                android:tooltipText="@string/tool_signature" />
+
+            <ImageButton
+                android:id="@+id/tool_stamps"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_stamps"
+                android:src="@drawable/ic_check_box"
+                android:tooltipText="@string/tool_stamps" />
+
+            <ImageButton
+                android:id="@+id/tool_image"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_image"
+                android:src="@drawable/ic_image"
+                android:tooltipText="@string/tool_image" />
+
+            <ImageButton
+                android:id="@+id/tool_whiteout"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_whiteout"
+                android:src="@drawable/ic_redact"
+                android:tooltipText="@string/tool_whiteout" />
+
+            <ImageButton
+                android:id="@+id/tool_redact"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/tool_redact"
+                android:src="@drawable/ic_redact"
+                app:tint="?attr/colorError"
+                android:tooltipText="@string/tool_redact" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="32dp"
+                android:layout_marginHorizontal="4dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <ImageButton
+                android:id="@+id/ann_color"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/color_and_width"
+                android:src="@drawable/ic_palette"
+                android:tooltipText="@string/color_and_width" />
+
+            <ImageButton
+                android:id="@+id/ann_undo"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/undo"
+                android:src="@drawable/ic_undo"
+                android:tooltipText="@string/undo" />
+
+            <ImageButton
+                android:id="@+id/ann_redo"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/redo"
+                android:src="@drawable/ic_redo"
+                android:tooltipText="@string/redo" />
+
+            <ImageButton
+                android:id="@+id/ann_save"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/save"
+                android:src="@drawable/ic_save"
+                android:tooltipText="@string/save" />
+
+            <ImageButton
+                android:id="@+id/ann_done"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/done"
+                android:src="@drawable/ic_check"
+                android:tooltipText="@string/done" />
+        </LinearLayout>
+    </HorizontalScrollView>
+</LinearLayout>
