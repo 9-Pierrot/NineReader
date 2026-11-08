@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_bookmark"
+        android:icon="@drawable/ic_bookmark_border"
+        android:title="@string/bookmark_toggle"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_save"
+        android:icon="@drawable/ic_save"
+        android:title="@string/save"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_go_to"
+        android:title="@string/go_to_page" />
+    <item
+        android:id="@+id/action_reflow"
+        android:icon="@drawable/ic_reflow"
+        android:title="@string/reflow_title" />
+    <item
+        android:id="@+id/action_rsvp"
+        android:title="@string/rsvp_title" />
+    <item
+        android:id="@+id/action_autoscroll"
+        android:title="@string/autoscroll" />
+    <item
+        android:id="@+id/action_presentation"
+        android:title="@string/presentation_mode" />
+    <item
+        android:id="@+id/action_share_page"
+        android:title="@string/share_page" />
+    <item
+        android:id="@+id/action_save_copy"
+        android:title="@string/save_copy" />
+    <item
+        android:id="@+id/action_organize"
+        android:title="@string/tool_organize" />
+    <item
+        android:id="@+id/action_share_file"
+        android:title="@string/share_file" />
+    <item
+        android:id="@+id/action_info"
+        android:title="@string/document_info" />
+</menu>

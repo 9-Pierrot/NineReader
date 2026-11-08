@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared bar for read-aloud (LEC-13) and auto-scroll (RAP-06) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:background="?attr/colorSurfaceContainerHigh"
+    android:elevation="6dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp">
+
+    <ImageButton
+        android:id="@+id/player_toggle"
+        style="@style/Widget.Material3.Button.IconButton.Filled"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/tts_pause"
+        android:src="@drawable/ic_pause" />
+
+    <TextView
+        android:id="@+id/player_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/player_speed"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:contentDescription="@string/speed"
+        app:labelBehavior="floating" />
+
+    <ImageButton
+        android:id="@+id/player_close"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/tts_stop"
+        android:src="@drawable/ic_close" />
+</LinearLayout>
