@@ -164,6 +164,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         setupBottomBar();
         setupSearchBar();
         b.pages.setListener(this);
+        b.topBar.addOnLayoutChangeListener((v, l, t, r, bt, ol, ot, or, ob) -> b.pages.setContentTopInset(bt - t));
         b.pages.setItemAnimator(null);
         b.pages.setHasFixedSize(false);
         b.panelScrim.setOnClickListener(v -> closePanel());

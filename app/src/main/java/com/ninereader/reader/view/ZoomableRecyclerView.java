@@ -76,6 +76,7 @@ public class ZoomableRecyclerView extends RecyclerView {
     }
 
     private float scale = 1f;
+    private int topInset;
     private float tx;
     private float ty;
     private boolean horizontalMode;
@@ -332,12 +333,22 @@ public class ZoomableRecyclerView extends RecyclerView {
 
     private void updatePadding() {
         if (horizontalMode) {
-            if (getPaddingBottom() != 0) setPadding(0, 0, 0, 0);
+            if (getPaddingBottom() != 0 || getPaddingTop() != 0) setPadding(0, 0, 0, 0);
             return;
         }
         int h = getHeight();
         int pad = h <= 0 ? 0 : Math.round(h - h / scale);
-        if (pad != getPaddingBottom()) setPadding(0, 0, 0, pad);
+        if (pad != getPaddingBottom() || topInset != getPaddingTop()) setPadding(0, topInset, 0, pad);
+    }
+
+    /**
+     * Space kept above the first page in continuous mode so that it is not hidden by the toolbar
+     * (pages scroll under the bars, which overlay the content).
+     */
+    public void setContentTopInset(int inset) {
+        if (inset == topInset) return;
+        topInset = inset;
+        updatePadding();
     }
 
     private void clampTranslation() {

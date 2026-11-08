@@ -110,6 +110,12 @@ public final class PdfEngine implements Closeable {
         }
     }
 
+    /** Loads the native library ahead of time (app start) so that the first document opens fast. */
+    @WorkerThread
+    public static void warmUp(@NonNull Context context) {
+        core(context);
+    }
+
     public int pageCount() {
         return pageCount;
     }

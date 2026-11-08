@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
             }
             return insets;
         });
+        boolean dark = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        WindowCompat.getInsetsController(getWindow(), binding.getRoot()).setAppearanceLightStatusBars(!dark);
         if (savedInstanceState == null) handleIntent(getIntent());
     }
 

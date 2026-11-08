@@ -168,7 +168,8 @@
                     android:stepSize="1"
                     android:valueFrom="1"
                     android:valueTo="2"
-                    app:labelBehavior="gone" />
+                    app:labelBehavior="gone"
+                    app:tickVisible="false" />
 
                 <TextView
                     android:id="@+id/page_label"

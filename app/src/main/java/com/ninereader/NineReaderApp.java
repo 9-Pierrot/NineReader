@@ -41,6 +41,8 @@ public class NineReaderApp extends Application {
         createNotificationChannels();
         // PdfBox needs its resources (fonts, glyph lists) loaded once, off the main thread.
         AppExecutors.get().background().execute(() -> PDFBoxResourceLoader.init(getApplicationContext()));
+        // Pdfium native initialisation takes a noticeable time: do it before the first document opens (§5.1).
+        AppExecutors.get().background().execute(() -> com.ninereader.reader.PdfEngine.warmUp(getApplicationContext()));
         // Empty the trash of items older than 30 days (BIB-04).
         AppExecutors.get().diskIo().execute(() -> trash().purgeExpired(System.currentTimeMillis()));
     }
