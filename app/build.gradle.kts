@@ -85,6 +85,14 @@ tasks.register<Checkstyle>("checkstyle") {
     classpath = files()
 }
 
+// Robolectric loads app classes through its own class loader: instrument them too.
+tasks.withType<Test>().configureEach {
+    extensions.configure(JacocoTaskExtension::class) {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
 tasks.register<JacocoReport>("jacocoUnitTestReport") {
     description = "Generates a coverage report for debug unit tests."
     group = "verification"

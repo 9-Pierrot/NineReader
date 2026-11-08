@@ -48,6 +48,11 @@ public final class AppExecutors {
         instance = new AppExecutors(new DirectExecutorService(), new DirectExecutorService(), direct);
     }
 
+    /** Restores the real executors (tests). */
+    public static void resetForTests() {
+        instance = null;
+    }
+
     public ExecutorService diskIo() {
         return diskIo;
     }
@@ -64,6 +69,7 @@ public final class AppExecutors {
         AtomicInteger counter = new AtomicInteger();
         return r -> {
             Thread t = new Thread(r, prefix + "-" + counter.incrementAndGet());
+            t.setDaemon(true);
             t.setPriority(Thread.NORM_PRIORITY - 1);
             return t;
         };

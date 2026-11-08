@@ -54,8 +54,34 @@ public final class PdfEngine implements Closeable {
         this.transforms = new PageTransform[pageCount];
     }
 
+    private static volatile Boolean nativeAvailable;
+
+    /**
+     * Whether the Pdfium native libraries can be loaded. PdfiumCore otherwise waits forever for its
+     * initialisation, so the check must happen before creating it.
+     */
+    static boolean nativeAvailable() {
+        if (nativeAvailable == null) {
+            synchronized (PdfEngine.class) {
+                if (nativeAvailable == null) {
+                    boolean ok;
+                    try {
+                        System.loadLibrary("pdfium");
+                        System.loadLibrary("pdfiumandroid");
+                        ok = true;
+                    } catch (UnsatisfiedLinkError | SecurityException e) {
+                        ok = false;
+                    }
+                    nativeAvailable = ok;
+                }
+            }
+        }
+        return nativeAvailable;
+    }
+
     @NonNull
-    private static PdfiumCore core(@NonNull Context context) {
+    private static PdfiumCore core(@NonNull Context context) throws IOException {
+        if (!nativeAvailable()) throw new IOException("Pdfium native library unavailable");
         if (core == null) {
             synchronized (PdfEngine.class) {
                 if (core == null) core = new PdfiumCore(context.getApplicationContext(), new io.legere.pdfiumandroid.util.Config(
@@ -113,7 +139,11 @@ public final class PdfEngine implements Closeable {
     /** Loads the native library ahead of time (app start) so that the first document opens fast. */
     @WorkerThread
     public static void warmUp(@NonNull Context context) {
-        core(context);
+        try {
+            core(context);
+        } catch (Throwable t) {
+            // Native library unavailable (e.g. JVM unit tests): it will be loaded on first use.
+        }
     }
 
     public int pageCount() {

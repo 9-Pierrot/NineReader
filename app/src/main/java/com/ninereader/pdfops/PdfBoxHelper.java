@@ -82,6 +82,35 @@ public final class PdfBoxHelper {
     }
 
     /**
+     * Saves a document that may have been opened with a password. PdfBox cannot re-encrypt a document
+     * opened with the user password, so it is written decrypted, reloaded and protected again with the
+     * same user password and permissions (AES-256). Unprotected documents are saved as is.
+     */
+    @WorkerThread
+    @NonNull
+    public static File saveKeepingProtection(@NonNull Context context, @NonNull PDDocument doc, @Nullable String password)
+            throws IOException {
+        if (!doc.isEncrypted()) return saveToTemp(context, doc);
+        com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission current = doc.getCurrentAccessPermission();
+        doc.setAllSecurityToBeRemoved(true);
+        File clear = saveToTemp(context, doc);
+        if (password == null || password.isEmpty()) return clear;
+        try (PDDocument reloaded = loadFile(context, clear, null)) {
+            com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission perms =
+                    new com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission(current.getPermissionBytes());
+            byte[] owner = new byte[24];
+            new java.security.SecureRandom().nextBytes(owner);
+            com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy policy =
+                    new com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy(FileUtils.toHex(owner), password, perms);
+            policy.setEncryptionKeyLength(256);
+            reloaded.protect(policy);
+            return saveToTemp(context, reloaded);
+        } finally {
+            FileUtils.deleteQuietly(clear);
+        }
+    }
+
+    /**
      * Writes a finished temporary file to its destination, then deletes it. The destination is only
      * touched once the complete new content exists (§5.4).
      */

@@ -44,7 +44,7 @@ public class NineReaderApp extends Application {
         // Pdfium native initialisation takes a noticeable time: do it before the first document opens (§5.1).
         AppExecutors.get().background().execute(() -> com.ninereader.reader.PdfEngine.warmUp(getApplicationContext()));
         // Empty the trash of items older than 30 days (BIB-04).
-        AppExecutors.get().diskIo().execute(() -> trash().purgeExpired(System.currentTimeMillis()));
+        AppExecutors.get().diskIo().execute(() -> new TrashRepository(this, db()).purgeExpired(System.currentTimeMillis()));
     }
 
     @NonNull

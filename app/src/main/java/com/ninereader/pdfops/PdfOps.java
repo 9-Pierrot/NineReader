@@ -127,9 +127,8 @@ public final class PdfOps {
                                 @NonNull PagePlan plan) throws IOException {
         if (plan.size() == 0) throw new IOException("Empty plan");
         try (PdfBoxHelper.Loaded loaded = PdfBoxHelper.load(context, src, password)) {
-            if (loaded.doc.isEncrypted()) loaded.doc.setAllSecurityToBeRemoved(password == null);
             applyPlan(loaded.doc, plan);
-            return PdfBoxHelper.saveToTemp(context, loaded.doc);
+            return PdfBoxHelper.saveKeepingProtection(context, loaded.doc, password);
         }
     }
 
@@ -264,7 +263,6 @@ public final class PdfOps {
             }
         }
         try (PdfBoxHelper.Loaded loaded = PdfBoxHelper.load(context, src, password)) {
-            if (loaded.doc.isEncrypted()) loaded.doc.setAllSecurityToBeRemoved(password == null);
             for (int k = 0; k < pages.size(); k++) {
                 PDPage page = loaded.doc.getPage(pages.get(k));
                 float[] n = normalized.get(k);
@@ -281,7 +279,7 @@ public final class PdfOps {
                 if (r.getWidth() > 10 && r.getHeight() > 10) page.setCropBox(r);
                 progress.report(pages.size() + k + 1, pages.size() * 2);
             }
-            return PdfBoxHelper.saveToTemp(context, loaded.doc);
+            return PdfBoxHelper.saveKeepingProtection(context, loaded.doc, password);
         }
     }
 
@@ -351,7 +349,6 @@ public final class PdfOps {
                                 @NonNull CompressionLevel level, @NonNull Progress progress) throws IOException {
         try (PdfBoxHelper.Loaded loaded = PdfBoxHelper.load(context, src, password)) {
             PDDocument doc = loaded.doc;
-            if (doc.isEncrypted()) doc.setAllSecurityToBeRemoved(password == null);
             Map<COSBase, PDXObject> replaced = new IdentityHashMap<>();
             int n = doc.getNumberOfPages();
             int i = 0;
@@ -365,7 +362,7 @@ public final class PdfOps {
                 page.getCOSObject().removeItem(COSName.getPDFName("Thumb"));
                 page.getCOSObject().removeItem(COSName.getPDFName("PieceInfo"));
             }
-            return PdfBoxHelper.saveToTemp(context, doc);
+            return PdfBoxHelper.saveKeepingProtection(context, doc, password);
         }
     }
 

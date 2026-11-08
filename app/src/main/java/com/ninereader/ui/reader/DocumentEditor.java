@@ -174,7 +174,7 @@ public class DocumentEditor implements AnnotationStore.Listener {
                 com.ninereader.pdfops.Redaction.apply(context, loaded.doc, source, password, redactions);
                 PdfAnnotationWriter.Result r = PdfAnnotationWriter.apply(loaded.doc, items, values);
                 failures = r.failures.size();
-                temp = PdfBoxHelper.saveToTemp(context, loaded.doc);
+                temp = PdfBoxHelper.saveKeepingProtection(context, loaded.doc, password);
             } catch (IOException | RuntimeException e) {
                 finish(callback, new SaveResult(false, false, null, 0, e.getMessage()));
                 return;

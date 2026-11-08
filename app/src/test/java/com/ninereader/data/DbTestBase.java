@@ -37,6 +37,7 @@ public abstract class DbTestBase {
     @After
     public void closeDb() {
         db.close();
+        com.ninereader.util.AppExecutors.resetForTests();
     }
 
     /** Reads the current value of a LiveData (observing it once). */

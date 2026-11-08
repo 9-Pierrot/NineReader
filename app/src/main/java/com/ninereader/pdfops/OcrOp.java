@@ -132,13 +132,12 @@ public final class OcrOp {
         }
         try (PdfBoxHelper.Loaded loaded = PdfBoxHelper.load(context, src, password)) {
             PDDocument doc = loaded.doc;
-            if (doc.isEncrypted()) doc.setAllSecurityToBeRemoved(password == null);
             PDFont font = PdfBoxHelper.unicodeFont(doc);
             for (int k = 0; k < recognized.size(); k++) {
                 addTextLayer(doc, doc.getPage(recognized.get(k)), font, words.get(k), transforms.get(k));
             }
             progress.report(pages.size() + 1, pages.size() + 1);
-            return new Result(PdfBoxHelper.saveToTemp(context, doc), recognized.size());
+            return new Result(PdfBoxHelper.saveKeepingProtection(context, doc, password), recognized.size());
         }
     }
 
