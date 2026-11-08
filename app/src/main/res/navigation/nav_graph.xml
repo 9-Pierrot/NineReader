@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.ninereader.ui.home.HomeFragment"
+        android:label="@string/nav_home" />
+
+    <fragment
+        android:id="@+id/filesFragment"
+        android:name="com.ninereader.ui.files.FilesFragment"
+        android:label="@string/nav_files" />
+
+    <fragment
+        android:id="@+id/createFragment"
+        android:name="com.ninereader.ui.create.CreateFragment"
+        android:label="@string/nav_create" />
+
+    <fragment
+        android:id="@+id/toolsFragment"
+        android:name="com.ninereader.ui.tools.ToolsFragment"
+        android:label="@string/nav_tools" />
+
+    <fragment
+        android:id="@+id/toolRunFragment"
+        android:name="com.ninereader.ui.tools.ToolRunFragment"
+        android:label="@string/nav_tools">
+        <argument
+            android:name="tool"
+            app:argType="string" />
+        <argument
+            android:name="uri"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/organizeFragment"
+        android:name="com.ninereader.ui.tools.OrganizeFragment"
+        android:label="@string/tool_organize">
+        <argument
+            android:name="tool"
+            android:defaultValue="organize"
+            app:argType="string" />
+        <argument
+            android:name="uri"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.ninereader.ui.settings.SettingsFragment"
+        android:label="@string/settings" />
+
+    <fragment
+        android:id="@+id/signaturesFragment"
+        android:name="com.ninereader.ui.signatures.SignaturesFragment"
+        android:label="@string/signatures" />
+
+    <action
+        android:id="@+id/action_global_settings"
+        app:destination="@id/settingsFragment" />
+    <action
+        android:id="@+id/action_global_tool"
+        app:destination="@id/toolRunFragment" />
+    <action
+        android:id="@+id/action_global_organize"
+        app:destination="@id/organizeFragment" />
+    <action
+        android:id="@+id/action_global_signatures"
+        app:destination="@id/signaturesFragment" />
+</navigation>

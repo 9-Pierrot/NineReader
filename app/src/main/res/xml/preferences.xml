@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/pref_cat_appearance">
+        <ListPreference
+            app:defaultValue="system"
+            app:entries="@array/app_theme_labels"
+            app:entryValues="@array/app_theme_values"
+            app:key="app_theme"
+            app:title="@string/pref_app_theme"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/pref_cat_reading">
+        <ListPreference
+            app:defaultValue="continuous"
+            app:entries="@array/reading_mode_labels"
+            app:entryValues="@array/reading_mode_values"
+            app:key="reading_mode"
+            app:title="@string/pref_reading_mode"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            app:defaultValue="auto"
+            app:entries="@array/reader_theme_labels"
+            app:entryValues="@array/reader_theme_values"
+            app:key="reader_theme"
+            app:title="@string/reader_theme"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="double_page_tablet_landscape"
+            app:summary="@string/pref_double_page_summary"
+            app:title="@string/pref_double_page" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="smart_crop"
+            app:title="@string/smart_crop" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="tap_zones"
+            app:summary="@string/pref_tap_zones_summary"
+            app:title="@string/pref_tap_zones" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="volume_keys"
+            app:title="@string/pref_volume_keys" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="keep_screen_on"
+            app:title="@string/pref_keep_screen_on" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/pref_cat_annotations">
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="stylus_only_drawing"
+            app:summary="@string/pref_stylus_only_summary"
+            app:title="@string/pref_stylus_only" />
+        <EditTextPreference
+            app:key="initials"
+            app:title="@string/pref_initials"
+            app:useSimpleSummaryProvider="true" />
+        <Preference
+            app:key="signatures"
+            app:title="@string/signatures" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/pref_cat_data">
+        <Preference
+            app:key="backup_export"
+            app:summary="@string/pref_backup_export_summary"
+            app:title="@string/pref_backup_export" />
+        <Preference
+            app:key="backup_import"
+            app:title="@string/pref_backup_import" />
+        <Preference
+            app:key="clear_recents"
+            app:title="@string/pref_clear_recents" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/pref_cat_about">
+        <Preference
+            app:key="privacy"
+            app:summary="@string/privacy_summary"
+            app:title="@string/privacy_title" />
+        <Preference
+            app:key="version"
+            app:title="@string/pref_version" />
+    </PreferenceCategory>
+</PreferenceScreen>
