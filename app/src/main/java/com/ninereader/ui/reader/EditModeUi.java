@@ -58,6 +58,10 @@ class EditModeUi {
         boolean bold;
         boolean italic;
         int color = 0xFF000000;
+        /** One-line text (title, label, new box): the box widens with the text instead of wrapping. */
+        boolean singleLine;
+        /** Right edge the box never shrinks below (original extent). */
+        float minRight;
     }
 
     private final ReaderActivity a;
@@ -82,6 +86,20 @@ class EditModeUi {
         this.editor = activity.b.inlineEditor;
         bar = BarEditBinding.inflate(LayoutInflater.from(activity), activity.b.contextualBar, false);
         AnnotationStore store = activity.vm.editor().store();
+        editor.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                if (target != null && target.singleLine) positionEditor();
+            }
+        });
         // Keyboard shown or hidden: keep the text being edited visible.
         activity.b.bottomArea.addOnLayoutChangeListener((v, l, t, r, bt, ol, ot, or, ob) -> {
             if (bt - t != ob - ot) editor.post(this::ensureEditorVisible);
@@ -118,13 +136,13 @@ class EditModeUi {
         bar.editBold.setOnClickListener(v -> {
             if (target != null) {
                 target.bold = !target.bold;
-                applyStyleToEditor();
+                positionEditor();
             }
         });
         bar.editItalic.setOnClickListener(v -> {
             if (target != null) {
                 target.italic = !target.italic;
-                applyStyleToEditor();
+                positionEditor();
             }
         });
         bar.editFont.setOnClickListener(this::chooseFamily);
@@ -289,6 +307,8 @@ class EditModeUi {
         t.page = b.page;
         t.block = b;
         t.bounds = b.bounds.clone();
+        t.singleLine = b.text.indexOf('\n') < 0 && b.bounds[3] - b.bounds[1] < b.lineHeight * 1.6f;
+        t.minRight = b.bounds[2];
         t.fontSize = b.fontSize;
         t.lineHeight = b.lineHeight;
         t.family = b.family;
@@ -303,6 +323,9 @@ class EditModeUi {
         t.page = an.page;
         t.annotationId = an.id;
         t.bounds = an.bounds == null ? new float[]{0, 0, 100, 20} : an.bounds.clone();
+        float lh = PdfTextEditor.lineHeightOf(an);
+        t.singleLine = (an.text == null || an.text.indexOf('\n') < 0) && t.bounds[3] - t.bounds[1] < lh * 1.6f;
+        t.minRight = an.originalBounds != null ? an.originalBounds[2] : t.bounds[0] + 40f;
         t.fontSize = an.fontSize;
         t.lineHeight = PdfTextEditor.lineHeightOf(an);
         t.family = PdfTextEditor.familyOf(an);
@@ -315,13 +338,14 @@ class EditModeUi {
     private void beginNewBox(int page, float x, float y) {
         PdfEngine e = a.vm.engine();
         float pageW = e != null && e.isMeasured(page) ? e.pageWidth(page) : 595f;
-        float w = Math.max(80f, Math.min(240f, pageW - x - 12f));
         Target t = new Target();
+        t.singleLine = true;
+        t.minRight = Math.min(pageW, x + 40f);
         t.page = page;
         t.isNew = true;
         t.fontSize = 12f;
         t.lineHeight = 12f * TextBlock.DEFAULT_LEADING;
-        t.bounds = new float[]{x, y - 12f * 1.3f, x + w, y};
+        t.bounds = new float[]{x, y - 12f * 1.3f, t.minRight, y};
         begin(t, "");
     }
 
@@ -343,11 +367,30 @@ class EditModeUi {
         editor.postDelayed(this::ensureEditorVisible, 400);
     }
 
+    /** One-line text: the right edge follows the typed text, up to the page margin (like Acrobat). */
+    private void fitWidth(@NonNull Target t) {
+        if (!t.singleLine) return;
+        String text = editor.getText().toString();
+        if (text.indexOf('\n') >= 0) {
+            t.singleLine = false; // the user broke the line: keep the current width and wrap from now on
+            return;
+        }
+        Paint p = new Paint();
+        p.setTypeface(EditFonts.typeface(a, t.family, t.bold, t.italic));
+        p.setTextSize(t.fontSize);
+        float needed = t.bounds[0] + p.measureText(text) + t.fontSize * 0.3f;
+        PdfEngine e = a.vm.engine();
+        float pageW = e != null && e.isMeasured(t.page) ? e.pageWidth(t.page) : 595f;
+        float max = Math.max(t.minRight, pageW - 18f);
+        t.bounds[2] = Math.min(max, Math.max(t.minRight, needed));
+    }
+
     /** Places the editor over the block, with the block's typography at the current zoom. */
     private boolean positionEditor() {
         Target t = target;
         PageAdapter adapter = a.adapter;
         if (t == null || adapter == null) return false;
+        fitWidth(t);
         RecyclerView.ViewHolder vh = a.b.pages.findViewHolderForAdapterPosition(adapter.spreads().spreadOf(t.page));
         if (vh == null || !(vh.itemView instanceof SpreadView)) return false;
         SpreadView sv = (SpreadView) vh.itemView;
@@ -448,7 +491,7 @@ class EditModeUi {
         float old = t.fontSize;
         t.fontSize = Math.max(4f, Math.min(144f, t.fontSize + direction * step));
         t.lineHeight = t.lineHeight * t.fontSize / old; // keep the paragraph's relative spacing
-        applyStyleToEditor();
+        positionEditor();
     }
 
     private void chooseFamily(View anchor) {
@@ -459,7 +502,7 @@ class EditModeUi {
         menu.setOnMenuItemClickListener(item -> {
             if (target != null) {
                 target.family = EditFonts.Family.values()[item.getItemId()];
-                applyStyleToEditor();
+                positionEditor();
             }
             return true;
         });
@@ -475,7 +518,7 @@ class EditModeUi {
                 .setItems(names, (d, which) -> {
                     if (target != null) {
                         target.color = colors[which];
-                        applyStyleToEditor();
+                        positionEditor();
                     }
                 })
                 .show();
