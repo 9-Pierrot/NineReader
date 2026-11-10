@@ -213,7 +213,7 @@
     <string name="redact_hint">Draw areas: their content will really be removed when saving (the page becomes an image).</string>
     <string name="sign_hint">Tap a field to fill it, or use Signature / Stamps / Text.</string>
     <string name="save_changes_title">Save changes?</string>
-    <string name="save_changes_message">Annotations and form values will be written into the PDF (standard format). You can replace the file or save a copy.</string>
+    <string name="save_changes_message">Text edits, annotations and form values will be written into the PDF (standard format). You can replace the file or save a copy.</string>
     <string name="save_in_file">Replace file</string>
     <string name="save_copy">Save a copy</string>
     <string name="keep_draft">Later</string>
@@ -264,8 +264,8 @@
     <string name="tool_annotate_desc">Highlight, comment, draw</string>
     <string name="tool_fill_sign">Fill and sign</string>
     <string name="tool_fill_sign_desc">Forms, handwritten signature, stamps</string>
-    <string name="tool_edit_content">Add text and images</string>
-    <string name="tool_edit_content_desc">Add text or images, or hide an area</string>
+    <string name="tool_edit_content">Edit text and images</string>
+    <string name="tool_edit_content_desc">Fix the PDF text, add text and images</string>
     <string name="tool_signatures_desc">Manage your signatures and initials</string>
     <string name="tool_redact_desc">Really remove the content of an area</string>
     <string name="tool_to_images">PDF → images</string>
@@ -401,6 +401,41 @@
     <string name="privacy_title">Privacy</string>
     <string name="privacy_summary">No data collected, no network access</string>
     <string name="privacy_text">NineReader works completely offline. No personal data is collected or sent. Files are only opened through the Android document picker, and PDF passwords are never stored.</string>
+
+    <!-- Edit mode (MOD-01, MOD-02) -->
+    <string name="bar_contents">Contents</string>
+    <string name="bar_annotate">Annotate</string>
+    <string name="bar_edit">Edit</string>
+    <string name="bar_display">Display</string>
+    <string name="bar_mode">Mode</string>
+    <string name="bar_listen">Listen</string>
+    <string name="edit_text_images">Edit text and images</string>
+    <string name="edit_mode_hint">Edit mode: tap a text block to edit it, or use “Add text”. Long press to move a block.</string>
+    <string name="edit_analyzing">Analysing the page text…</string>
+    <string name="edit_no_text">No text detected on this page</string>
+    <string name="edit_tap_hint">Tap an outlined text block, or use “Add text”</string>
+    <string name="text_recognized_ocr">Scanned page %d: text recognised automatically (OCR)</string>
+    <string name="text_edited">Edited text</string>
+    <string name="add_text">Add text</string>
+    <string name="add_image">Add image</string>
+    <string name="tap_to_place_text">Tap the page where you want to write</string>
+    <string name="edit_font_family">Font</string>
+    <string name="font_sans">Sans</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_mono">Mono</string>
+    <string name="bold">Bold</string>
+    <string name="italic">Italic</string>
+    <string name="text_color">Text colour</string>
+    <string name="delete_text_block">Delete this text</string>
+    <string-array name="text_color_names">
+        <item>Black</item>
+        <item>Dark grey</item>
+        <item>Blue</item>
+        <item>Red</item>
+        <item>Green</item>
+        <item>Purple</item>
+        <item>Orange</item>
+    </string-array>
 
     <!-- Widget -->
     <string name="widget_label">Resume reading</string>

@@ -77,6 +77,7 @@ public class ZoomableRecyclerView extends RecyclerView {
 
     private float scale = 1f;
     private int topInset;
+    private int bottomInset;
     private float tx;
     private float ty;
     private boolean horizontalMode;
@@ -337,7 +338,7 @@ public class ZoomableRecyclerView extends RecyclerView {
             return;
         }
         int h = getHeight();
-        int pad = h <= 0 ? 0 : Math.round(h - h / scale);
+        int pad = h <= 0 ? 0 : Math.round(h - h / scale + bottomInset / scale);
         if (pad != getPaddingBottom() || topInset != getPaddingTop()) setPadding(0, topInset, 0, pad);
     }
 
@@ -348,6 +349,13 @@ public class ZoomableRecyclerView extends RecyclerView {
     public void setContentTopInset(int inset) {
         if (inset == topInset) return;
         topInset = inset;
+        updatePadding();
+    }
+
+    /** Extra space after the last page, so that it can be scrolled above an overlay (keyboard, edit bar). */
+    public void setContentBottomInset(int inset) {
+        if (inset == bottomInset) return;
+        bottomInset = inset;
         updatePadding();
     }
 

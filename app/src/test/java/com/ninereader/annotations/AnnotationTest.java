@@ -73,7 +73,8 @@ public class AnnotationTest {
         assertTrue(Annotation.Type.REDACT.isBoxed());
         assertTrue(Annotation.Type.ARROW.isLine());
         assertFalse(Annotation.Type.INK.isBoxed());
-        assertEquals(13, Arrays.asList(Annotation.Type.values()).size());
+        assertTrue(Annotation.Type.TEXT_EDIT.isBoxed());
+        assertEquals(14, Arrays.asList(Annotation.Type.values()).size());
     }
 
     @Test

@@ -32,6 +32,13 @@ public class ReaderDecorator implements PageDecorator {
     private final Paint fieldPaint = new Paint();
     private final Paint fieldFill = new Paint();
     private final Paint fieldText = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint blockPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint blockFill = new Paint();
+    /** Edit mode: editable text blocks to outline, and the key of the block being edited. */
+    @Nullable
+    private java.util.function.IntFunction<java.util.List<com.ninereader.edit.TextBlock>> editBlocks;
+    @Nullable
+    private java.util.function.Predicate<com.ninereader.edit.TextBlock> blockHidden;
     private final RectF tmp = new RectF();
     private final RectF view = new RectF();
 
@@ -39,6 +46,9 @@ public class ReaderDecorator implements PageDecorator {
     private AnnotationStore store;
     @Nullable
     private AnnotationController controller;
+    /** Edit mode: annotation drawn instead of its stored version (block being moved). */
+    @Nullable
+    private Annotation editOverride;
     /** Search hits: page → rects (page coordinates). */
     private int searchPage = -1;
     private List<RectF> searchRects = Collections.emptyList();
@@ -51,6 +61,11 @@ public class ReaderDecorator implements PageDecorator {
 
     public ReaderDecorator(float density) {
         painter = new AnnotationPainter(density);
+        blockPaint.setStyle(Paint.Style.STROKE);
+        blockPaint.setStrokeWidth(Math.max(1f, density));
+        blockPaint.setColor(0xAA3D7BE0);
+        blockPaint.setPathEffect(new android.graphics.DashPathEffect(new float[]{5 * density, 3 * density}, 0));
+        blockFill.setColor(0x123D7BE0);
         searchPaint.setColor(0x66FFC107);
         currentPaint.setColor(0x99FF5722);
         selectionPaint.setColor(0x553D7BE0);
@@ -89,6 +104,17 @@ public class ReaderDecorator implements PageDecorator {
     public void setTts(int page, @NonNull List<RectF> rects) {
         ttsPage = page;
         ttsRects = rects;
+    }
+
+    public void setEditOverride(@Nullable Annotation annotation) {
+        this.editOverride = annotation;
+    }
+
+    /** Shows the editable text blocks (edit mode), or hides them with null. */
+    public void setEditBlocks(@Nullable java.util.function.IntFunction<java.util.List<com.ninereader.edit.TextBlock>> blocks,
+                              @Nullable java.util.function.Predicate<com.ninereader.edit.TextBlock> hidden) {
+        this.editBlocks = blocks;
+        this.blockHidden = hidden;
     }
 
     public void setFields(@NonNull List<FormField> fields, boolean show) {
@@ -137,9 +163,25 @@ public class ReaderDecorator implements PageDecorator {
             for (Annotation a : store.all()) {
                 if (a.page != f.page) continue;
                 if (editing != null && editing.id.equals(a.id)) continue;
+                if (editOverride != null && editOverride.id.equals(a.id)) continue;
                 painter.draw(c, f, a, selected != null && selected.id.equals(a.id));
             }
             if (editing != null && editing.page == f.page) painter.draw(c, f, editing, true);
+            if (editOverride != null && editOverride.page == f.page) painter.draw(c, f, editOverride, true);
+        }
+        // Editable text blocks (edit mode, MOD-02)
+        if (editBlocks != null) {
+            java.util.List<com.ninereader.edit.TextBlock> blocks = editBlocks.apply(f.page);
+            if (blocks != null) {
+                for (com.ninereader.edit.TextBlock b : blocks) {
+                    if (blockHidden != null && blockHidden.test(b)) continue;
+                    tmp.set(b.bounds[0], b.bounds[3], b.bounds[2], b.bounds[1]);
+                    if (!f.pageToView(tmp, view)) continue;
+                    view.inset(-2, -2);
+                    c.drawRect(view, blockFill);
+                    c.drawRect(view, blockPaint);
+                }
+            }
         }
         // Text selection (LEC-11)
         TextSelection sel = selection;

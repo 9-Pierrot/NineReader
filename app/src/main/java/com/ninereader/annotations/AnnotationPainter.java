@@ -46,6 +46,14 @@ public class AnnotationPainter {
     private Runnable invalidator;
     private final float density;
 
+    @Nullable
+    private android.content.Context context;
+
+    /** Context used to load the editing fonts (text edits are drawn with the font that will be embedded). */
+    public void setContext(@Nullable android.content.Context context) {
+        this.context = context == null ? null : context.getApplicationContext();
+    }
+
     public AnnotationPainter(float density) {
         this.density = density;
         stroke.setStyle(Paint.Style.STROKE);
@@ -148,6 +156,9 @@ public class AnnotationPainter {
                     c.drawRect(r, stroke);
                 }
                 break;
+            case TEXT_EDIT:
+                drawTextEdit(c, f, a, unit);
+                break;
             case WHITEOUT:
                 if (a.bounds == null || !map(f, a.bounds, r)) break;
                 fill.setColor(0xFFFFFFFF);
@@ -165,6 +176,33 @@ public class AnnotationPainter {
                 break;
         }
         if (selected) drawSelection(c, f, a);
+    }
+
+    /** Edited text: hides the original block and draws the new text with its embedded font. */
+    private void drawTextEdit(Canvas c, PageFrame f, Annotation a, float unit) {
+        if (a.originalBounds != null && map(f, a.originalBounds, r)) {
+            fill.setColor(0xFFFFFFFF);
+            r.inset(-1, -1);
+            c.drawRect(r, fill);
+        }
+        if (a.bounds == null || a.text == null || a.text.isEmpty() || !map(f, a.bounds, r)) return;
+        float size = Math.max(2f, a.fontSize * unit);
+        textPaint.setColor(a.color | 0xFF000000);
+        textPaint.setTextSize(size);
+        com.ninereader.edit.EditFonts.Family family = com.ninereader.edit.PdfTextEditor.familyOf(a);
+        textPaint.setTypeface(context == null ? null : com.ninereader.edit.EditFonts.typeface(context, family, a.bold, a.italic));
+        Paint.FontMetrics fm = textPaint.getFontMetrics();
+        float natural = fm.descent - fm.ascent;
+        float extra = com.ninereader.edit.PdfTextEditor.lineHeightOf(a) * unit - natural;
+        int w = Math.max(1, Math.round(r.width()));
+        StaticLayout layout = StaticLayout.Builder.obtain(a.text, 0, a.text.length(), textPaint, w)
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(extra, 1f).setIncludePad(false).build();
+        c.save();
+        // First baseline at the same place as in the saved PDF.
+        c.translate(r.left, r.top + com.ninereader.edit.PdfTextEditor.firstBaselineOffset(size) + fm.ascent);
+        layout.draw(c);
+        c.restore();
+        textPaint.setTypeface(null);
     }
 
     private void drawSelection(Canvas c, PageFrame f, Annotation a) {

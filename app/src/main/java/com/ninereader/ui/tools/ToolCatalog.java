@@ -87,7 +87,7 @@ public final class ToolCatalog {
         t.add(new Tool("fill_sign", R.string.tool_fill_sign, R.string.tool_fill_sign_desc, R.drawable.ic_signature, Launch.READER, "sign",
                 Category.EDIT));
         t.add(new Tool("edit_content", R.string.tool_edit_content, R.string.tool_edit_content_desc, R.drawable.ic_text_fields,
-                Launch.READER, "annotate", Category.EDIT));
+                Launch.READER, "edit", Category.EDIT));
         t.add(new Tool("signatures", R.string.signatures, R.string.tool_signatures_desc, R.drawable.ic_edit, Launch.SIGNATURES, null, Category.EDIT));
         t.add(new Tool("redact", R.string.tool_redact, R.string.tool_redact_desc, R.drawable.ic_redact, Launch.READER, "redact",
                 Category.EDIT, Category.PROTECT));

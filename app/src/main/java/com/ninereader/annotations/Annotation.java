@@ -15,7 +15,9 @@ public class Annotation {
 
     /** Annotation kinds (ANN-01..04, SIG-02..04, MOD-01/02). */
     public enum Type {
-        HIGHLIGHT, UNDERLINE, STRIKEOUT, NOTE, INK, RECT, CIRCLE, LINE, ARROW, FREETEXT, IMAGE, WHITEOUT, REDACT;
+        HIGHLIGHT, UNDERLINE, STRIKEOUT, NOTE, INK, RECT, CIRCLE, LINE, ARROW, FREETEXT, IMAGE, WHITEOUT, REDACT,
+        /** Edited text of the PDF (MOD-02): original glyphs removed, new text written. */
+        TEXT_EDIT;
 
         public boolean isTextMarkup() {
             return this == HIGHLIGHT || this == UNDERLINE || this == STRIKEOUT;
@@ -24,7 +26,7 @@ public class Annotation {
         /** Whether the annotation is defined by a box that can be moved and resized. */
         public boolean isBoxed() {
             return this == NOTE || this == RECT || this == CIRCLE || this == FREETEXT || this == IMAGE || this == WHITEOUT
-                    || this == REDACT;
+                    || this == REDACT || this == TEXT_EDIT;
         }
 
         public boolean isLine() {
@@ -58,6 +60,21 @@ public class Annotation {
     @Nullable
     public String imagePath;
     public long createdAt = System.currentTimeMillis();
+    /** TEXT_EDIT: region of the original text to remove {left, bottom, right, top}; null for a new text box. */
+    @Nullable
+    public float[] originalBounds;
+    /** TEXT_EDIT: text before editing (to detect changes and for the annotation list). */
+    @Nullable
+    public String originalText;
+    /** TEXT_EDIT: font family name of {@code EditFonts.Family}. */
+    @Nullable
+    public String fontFamily;
+    public boolean bold;
+    public boolean italic;
+    /** TEXT_EDIT: distance between baselines in points (0 = 1.2 x font size). */
+    public float lineHeight;
+    /** TEXT_EDIT: the original text comes from OCR (scanned page). */
+    public boolean fromOcr;
 
     @NonNull
     public Annotation copy() {
@@ -75,6 +92,13 @@ public class Annotation {
         a.fontSize = fontSize;
         a.imagePath = imagePath;
         a.createdAt = createdAt;
+        a.originalBounds = originalBounds == null ? null : originalBounds.clone();
+        a.originalText = originalText;
+        a.fontFamily = fontFamily;
+        a.bold = bold;
+        a.italic = italic;
+        a.lineHeight = lineHeight;
+        a.fromOcr = fromOcr;
         return a;
     }
 

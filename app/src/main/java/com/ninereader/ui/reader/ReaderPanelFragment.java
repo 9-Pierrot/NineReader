@@ -215,6 +215,9 @@ public class ReaderPanelFragment extends Fragment {
             case IMAGE:
                 res = R.string.tool_image;
                 break;
+            case TEXT_EDIT:
+                res = R.string.text_edited;
+                break;
             case REDACT:
                 res = R.string.tool_redact;
                 break;

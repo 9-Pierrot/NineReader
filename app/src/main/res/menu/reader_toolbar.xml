@@ -18,6 +18,10 @@
         android:visible="false"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_edit_text"
+        android:icon="@drawable/ic_text_fields"
+        android:title="@string/edit_text_images" />
+    <item
         android:id="@+id/action_go_to"
         android:title="@string/go_to_page" />
     <item

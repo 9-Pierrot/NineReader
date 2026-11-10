@@ -216,7 +216,7 @@
     <string name="redact_hint">Tracez des zones : leur contenu sera réellement supprimé à l\'enregistrement (la page devient une image).</string>
     <string name="sign_hint">Touchez un champ pour le remplir, ou utilisez Signature / Tampons / Texte.</string>
     <string name="save_changes_title">Enregistrer les modifications ?</string>
-    <string name="save_changes_message">Les annotations et valeurs de formulaire seront écrites dans le PDF (format standard). Vous pouvez remplacer le fichier ou enregistrer une copie.</string>
+    <string name="save_changes_message">Les modifications du texte, annotations et valeurs de formulaire seront écrites dans le PDF (format standard). Vous pouvez remplacer le fichier ou enregistrer une copie.</string>
     <string name="save_in_file">Remplacer le fichier</string>
     <string name="save_copy">Enregistrer une copie</string>
     <string name="keep_draft">Plus tard</string>
@@ -267,8 +267,8 @@
     <string name="tool_annotate_desc">Surligner, commenter, dessiner</string>
     <string name="tool_fill_sign">Remplir et signer</string>
     <string name="tool_fill_sign_desc">Formulaires, signature manuscrite, tampons</string>
-    <string name="tool_edit_content">Ajouter texte et images</string>
-    <string name="tool_edit_content_desc">Ajouter du texte, des images ou masquer une zone</string>
+    <string name="tool_edit_content">Modifier le texte et les images</string>
+    <string name="tool_edit_content_desc">Corriger le texte du PDF, ajouter du texte et des images</string>
     <string name="tool_signatures_desc">Gérer vos signatures et initiales</string>
     <string name="tool_redact_desc">Supprimer réellement le contenu d\'une zone</string>
     <string name="tool_to_images">PDF → images</string>
@@ -404,6 +404,43 @@
     <string name="privacy_title">Confidentialité</string>
     <string name="privacy_summary">Aucune donnée collectée, aucun accès réseau</string>
     <string name="privacy_text">NineReader fonctionne entièrement hors ligne. Aucune donnée personnelle n\'est collectée ni transmise. Les fichiers sont ouverts uniquement via le sélecteur de documents Android, et les mots de passe des PDF ne sont jamais enregistrés.</string>
+
+    <!-- Edit mode (MOD-01, MOD-02) -->
+    <string name="bar_contents">Sommaire</string>
+    <string name="bar_annotate">Annoter</string>
+    <string name="bar_edit">Modifier</string>
+    <string name="bar_display">Affichage</string>
+    <string name="bar_mode">Mode</string>
+    <string name="bar_listen">Écouter</string>
+    <string name="edit_text_images">Modifier le texte et les images</string>
+    <string name="edit_mode_hint">Mode Modifier : touchez un bloc de texte pour le modifier, ou « Ajouter du texte ». Appui long pour déplacer un bloc.</string>
+    <string name="edit_analyzing">Analyse du texte de la page…</string>
+    <string name="edit_no_text">Aucun texte détecté sur cette page</string>
+    <string name="edit_tap_hint">Touchez un bloc de texte encadré, ou utilisez « Ajouter du texte »</string>
+    <string name="text_recognized_ocr">Page %d numérisée : texte reconnu automatiquement (OCR)</string>
+    <string name="text_edited">Texte modifié</string>
+    <string name="add_text">Ajouter du texte</string>
+    <string name="add_image">Ajouter une image</string>
+    <string name="tap_to_place_text">Touchez la page à l\'endroit où écrire</string>
+    <string name="edit_font_family">Police</string>
+    <string name="font_sans">Sans</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_mono">Mono</string>
+    <string name="bold">Gras</string>
+    <string name="bold_short" translatable="false">B</string>
+    <string name="italic">Italique</string>
+    <string name="italic_short" translatable="false">I</string>
+    <string name="text_color">Couleur du texte</string>
+    <string name="delete_text_block">Supprimer ce texte</string>
+    <string-array name="text_color_names">
+        <item>Noir</item>
+        <item>Gris foncé</item>
+        <item>Bleu</item>
+        <item>Rouge</item>
+        <item>Vert</item>
+        <item>Violet</item>
+        <item>Orange</item>
+    </string-array>
 
     <!-- Widget -->
     <string name="widget_label">Reprendre la lecture</string>

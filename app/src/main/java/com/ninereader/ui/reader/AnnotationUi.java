@@ -108,6 +108,7 @@ class AnnotationUi implements AnnotationController.Host {
 
     void enter() {
         if (controller.isActive()) return;
+        if (a.editUi != null && a.editUi.isActive()) a.editUi.exit();
         a.vm.clearSelection();
         a.b.contextualBar.removeAllViews();
         a.b.contextualBar.addView(bar.getRoot());

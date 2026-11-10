@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edit mode toolbar (MOD-01, MOD-02): format row for the block being edited + actions -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurfaceContainerHigh"
+    android:elevation="6dp"
+    android:orientation="vertical">
+
+    <HorizontalScrollView
+        android:id="@+id/edit_format"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="4dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edit_font"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:contentDescription="@string/edit_font_family"
+                android:minWidth="0dp"
+                android:text="@string/font_sans" />
+
+            <ImageButton
+                android:id="@+id/edit_smaller"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/font_smaller"
+                android:src="@drawable/ic_expand_more" />
+
+            <TextView
+                android:id="@+id/edit_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="40dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+            <ImageButton
+                android:id="@+id/edit_bigger"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/font_bigger"
+                android:src="@drawable/ic_expand_less" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edit_bold"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:checkable="true"
+                android:contentDescription="@string/bold"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="@string/bold_short"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edit_italic"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:checkable="true"
+                android:contentDescription="@string/italic"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="@string/italic_short"
+                android:textStyle="italic" />
+
+            <ImageButton
+                android:id="@+id/edit_color"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/text_color"
+                android:src="@drawable/ic_palette" />
+
+            <ImageButton
+                android:id="@+id/edit_delete"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/delete_text_block"
+                android:src="@drawable/ic_delete" />
+
+            <ImageButton
+                android:id="@+id/edit_commit"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/done"
+                android:src="@drawable/ic_check" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/edit_add_text"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="@string/add_text"
+                    app:icon="@drawable/ic_title" />
+
+                <ImageButton
+                    android:id="@+id/edit_add_image"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="4dp"
+                    android:contentDescription="@string/add_image"
+                    android:src="@drawable/ic_image" />
+
+                <ImageButton
+                    android:id="@+id/edit_undo"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/undo"
+                    android:src="@drawable/ic_undo" />
+
+                <ImageButton
+                    android:id="@+id/edit_redo"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/redo"
+                    android:src="@drawable/ic_redo" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <ImageButton
+            android:id="@+id/edit_save"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/save"
+            android:src="@drawable/ic_save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/edit_done"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp"
+            android:text="@string/done" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/edit_busy"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="8dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorSize="20dp" />
+    </LinearLayout>
+</LinearLayout>

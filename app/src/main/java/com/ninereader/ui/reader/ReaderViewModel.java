@@ -67,6 +67,7 @@ public class ReaderViewModel extends AndroidViewModel {
 
     private final DocumentRepository documents;
     private final DocumentEditor editor;
+    private final TextEditSession textEdits;
     /** Text extraction / search / hit tests, kept apart from rendering. */
     private final ExecutorService textExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "nr-text");
@@ -106,6 +107,7 @@ public class ReaderViewModel extends AndroidViewModel {
         super(app);
         documents = NineReaderApp.from(app).documents();
         editor = new DocumentEditor(app, NineReaderApp.from(app).db());
+        textEdits = new TextEditSession(app);
         bookmarks = Transformations.switchMap(documentId, documents::bookmarks);
         cropEnabled = NineReaderApp.from(app).prefs().smartCrop();
     }
@@ -274,6 +276,12 @@ public class ReaderViewModel extends AndroidViewModel {
     @NonNull
     public DocumentEditor editor() {
         return editor;
+    }
+
+    /** Text detection for the edit mode (MOD-02). */
+    @NonNull
+    public TextEditSession textEdits() {
+        return textEdits;
     }
 
     // ------------------------------------------------------------------ position & mode
@@ -672,6 +680,7 @@ public class ReaderViewModel extends AndroidViewModel {
     protected void onCleared() {
         flushSession();
         closeDocument();
+        textEdits.close();
         textExecutor.shutdown();
         super.onCleared();
     }

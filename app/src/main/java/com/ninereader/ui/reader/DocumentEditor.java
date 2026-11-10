@@ -172,6 +172,8 @@ public class DocumentEditor implements AnnotationStore.Listener {
                 }
                 // MOD-03: real removal of the redacted content before other annotations are added.
                 com.ninereader.pdfops.Redaction.apply(context, loaded.doc, source, password, redactions);
+                // MOD-02: edited text (original glyphs removed, new text written).
+                com.ninereader.edit.PdfTextEditor.apply(context, loaded.doc, items, redactions.keySet());
                 PdfAnnotationWriter.Result r = PdfAnnotationWriter.apply(loaded.doc, items, values);
                 failures = r.failures.size();
                 temp = PdfBoxHelper.saveKeepingProtection(context, loaded.doc, password);

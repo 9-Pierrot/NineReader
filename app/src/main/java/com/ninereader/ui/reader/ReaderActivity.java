@@ -93,6 +93,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
     private static final String STATE_ANNOTATE = "annotate";
     private static final String STATE_PANEL = "panel";
     private static final String STATE_PRESENTATION = "presentation";
+    private static final String STATE_EDIT = "edit";
 
     ActivityReaderBinding b;
     ReaderViewModel vm;
@@ -102,6 +103,8 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
     ReaderDecorator decorator;
     @Nullable
     AnnotationUi annotationUi;
+    @Nullable
+    EditModeUi editUi;
     private final PagerSnapHelper snapHelper = new PagerSnapHelper();
     private boolean snapAttached;
     private ReadingMode mode = ReadingMode.CONTINUOUS;
@@ -112,6 +115,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
     private boolean documentReady;
     private float restoreZoom = -1f;
     private boolean restoreAnnotate;
+    private boolean restoreEdit;
     private int lastContainerW;
     private int lastContainerH;
     @Nullable
@@ -152,10 +156,12 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         vm = new ViewModelProvider(this).get(ReaderViewModel.class);
         decorator = new ReaderDecorator(getResources().getDisplayMetrics().density);
         decorator.painter().setInvalidator(() -> b.pages.invalidatePages());
+        decorator.painter().setContext(this);
         if (state != null) {
             restoreZoom = state.getFloat(STATE_ZOOM, -1f);
             barsVisible = state.getBoolean(STATE_BARS, true);
             restoreAnnotate = state.getBoolean(STATE_ANNOTATE, false);
+            restoreEdit = state.getBoolean(STATE_EDIT, false);
             panelOpen = state.getBoolean(STATE_PANEL, false);
             presentation = state.getBoolean(STATE_PRESENTATION, false);
         }
@@ -205,6 +211,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         out.putBoolean(STATE_ANNOTATE, annotationUi != null && annotationUi.isActive());
         out.putBoolean(STATE_PANEL, panelOpen);
         out.putBoolean(STATE_PRESENTATION, presentation);
+        out.putBoolean(STATE_EDIT, editUi != null && editUi.isActive());
     }
 
     @Override
@@ -324,6 +331,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             @Override
             public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
                 updateCurrentPageFromScroll();
+                if (editUi != null) editUi.onViewportChanged();
             }
 
             @Override
@@ -369,6 +377,13 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             annotationUi = new AnnotationUi(this);
         }
         decorator.setStore(vm.editor().store(), annotationUi.controller());
+        Uri docUri = vm.uri();
+        if (docUri != null) vm.textEdits().bind(docUri, vm.password(), vm::engine);
+        if (editUi == null) editUi = new EditModeUi(this);
+        if (restoreEdit) {
+            restoreEdit = false;
+            editUi.enter();
+        }
         if (restoreAnnotate) {
             restoreAnnotate = false;
             annotationUi.enter();
@@ -401,6 +416,9 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
                 break;
             case "presentation":
                 enterPresentation();
+                break;
+            case "edit":
+                if (editUi != null) editUi.enter();
                 break;
             case "annotate":
             case "sign":
@@ -490,7 +508,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
                 icon = R.drawable.ic_view_continuous;
                 break;
         }
-        b.btnMode.setImageResource(icon);
+        b.btnModeIcon.setImageResource(icon);
     }
 
     void setReadingMode(@NonNull ReadingMode newMode) {
@@ -547,6 +565,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         float v = Math.max(1, Math.min(count, page + 1));
         if (b.pageSlider.getValueTo() >= v && Math.round(b.pageSlider.getValue()) != Math.round(v)) b.pageSlider.setValue(v);
         updateBookmarkIcon();
+        if (editUi != null) editUi.onPageVisible(page);
         if (!barsVisible) {
             b.pageIndicator.setText(label);
             b.pageIndicator.setVisibility(View.VISIBLE);
@@ -601,7 +620,8 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         }
         ctl.setAppearanceLightStatusBars(!isSystemDark());
         animateBar(b.topBar, visible, true, animate);
-        animateBar(b.bottomBar, visible && (annotationUi == null || !annotationUi.isActive()), false, animate);
+        boolean modeActive = (annotationUi != null && annotationUi.isActive()) || (editUi != null && editUi.isActive());
+        animateBar(b.bottomBar, visible && !modeActive, false, animate);
     }
 
     private void animateBar(View bar, boolean show, boolean top, boolean animate) {
@@ -682,6 +702,8 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             askSave(false);
         } else if (id == R.id.action_go_to) {
             askGoToPage();
+        } else if (id == R.id.action_edit_text) {
+            if (editUi != null) editUi.enter();
         } else if (id == R.id.action_reflow) {
             new ReflowDialogFragment().show(getSupportFragmentManager(), ReflowDialogFragment.TAG);
         } else if (id == R.id.action_rsvp) {
@@ -776,6 +798,9 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         b.btnPanel.setOnClickListener(v -> togglePanel());
         b.btnAnnotate.setOnClickListener(v -> {
             if (annotationUi != null) annotationUi.enter();
+        });
+        b.btnEdit.setOnClickListener(v -> {
+            if (editUi != null) editUi.enter();
         });
         b.btnDisplay.setOnClickListener(v -> new DisplaySettingsSheet(this).show());
         b.btnMode.setOnClickListener(v -> {
@@ -929,6 +954,10 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     @Override
     public void onSingleTap(@Nullable ZoomableRecyclerView.Hit hit, float x, float y) {
+        if (editUi != null && editUi.isActive()) {
+            editUi.onTap(hit);
+            return;
+        }
         if (vm.selection().getValue() != null) {
             vm.clearSelection();
             return;
@@ -1027,6 +1056,10 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     @Override
     public void onLongPress(@NonNull ZoomableRecyclerView.Hit hit) {
+        if (editUi != null && editUi.isActive()) {
+            editUi.onLongPress(hit);
+            return;
+        }
         if (!hit.hasPagePoint) return;
         float tolerance = 8f / Math.max(0.1f, hit.frame.pageUnitToPx() * b.pages.getScale());
         vm.beginSelection(hit.frame.page, hit.pageX, hit.pageY, tolerance, started -> {
@@ -1036,6 +1069,10 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     @Override
     public void onLongPressDrag(@Nullable ZoomableRecyclerView.Hit hit) {
+        if (editUi != null && editUi.isActive()) {
+            editUi.onLongPressDrag(hit);
+            return;
+        }
         if (hit == null || !hit.hasPagePoint) return;
         float tolerance = 12f / Math.max(0.1f, hit.frame.pageUnitToPx() * b.pages.getScale());
         vm.extendSelection(hit.frame.page, hit.pageX, hit.pageY, tolerance);
@@ -1043,12 +1080,16 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     @Override
     public void onLongPressEnd() {
+        if (editUi != null && editUi.isActive()) {
+            editUi.onLongPressEnd();
+            return;
+        }
         // Selection stays until dismissed; the selection bar offers the actions.
     }
 
     @Override
     public void onZoomChanged(float scale) {
-        // Nothing to update: zoom is saved with the position.
+        if (editUi != null) b.pages.post(editUi::onViewportChanged);
     }
 
     // ------------------------------------------------------------------ selection (LEC-11)
@@ -1451,6 +1492,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     /** Asks where to save pending changes; never overwrites silently (§5.4). */
     void askSave(boolean thenFinish) {
+        if (editUi != null) editUi.commit();
         if (!vm.editor().hasPendingChanges()) {
             if (thenFinish) finish();
             return;
@@ -1512,6 +1554,8 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             closeSearch();
         } else if (panelOpen && !isPanelDocked()) {
             closePanel();
+        } else if (editUi != null && editUi.isActive()) {
+            editUi.exit();
         } else if (annotationUi != null && annotationUi.isActive()) {
             annotationUi.exit();
         } else if (autoScrolling) {
@@ -1561,7 +1605,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
                     break;
             }
         }
-        if (b.searchInput.hasFocus()) return super.onKeyDown(keyCode, event);
+        if (b.searchInput.hasFocus() || b.inlineEditor.hasFocus()) return super.onKeyDown(keyCode, event);
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 if (prefs.volumeKeys()) {

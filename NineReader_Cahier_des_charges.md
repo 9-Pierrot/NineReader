@@ -6,8 +6,8 @@
 |---|---|
 | Projet | NineReader |
 | Rédacteur | Pierre ATADEGNON |
-| Version du document | 1.0 |
-| Date | 08/11/2026 |
+| Version du document | 1.1 |
+| Date | 10/11/2026 |
 | Statut | Validé pour diffusion à l'équipe projet |
 | Plateformes | Android : smartphones **et** tablettes |
 | Langage / UI | Java 17, layouts XML (Views), Android Studio |
@@ -18,6 +18,7 @@
 |---|---|---|
 | 0.1 | 08/11/2026 | Brouillon initial |
 | 1.0 | 08/11/2026 | Tablettes intégrées au périmètre ; outils IA retirés ; numérisation par caméra reportée à une version ultérieure ; ajout de l'organisation projet, des critères d'acceptation et de la Definition of Done |
+| 1.1 | 10/11/2026 | MOD-02 étendue à la modification du texte d'origine (mode « Modifier » : détection des blocs, OCR des pages numérisées, édition en temps réel, suppression réelle des glyphes) ; polices Liberation (SIL OFL) ajoutées au §6.2 ; risque correspondant mis à jour au §11 |
 
 ---
 
@@ -186,7 +187,7 @@ Chaque exigence a un identifiant unique, à reprendre dans les tickets, les bran
 | ORG-03 | Scinder / extraire | Extraire une plage de pages dans un nouveau PDF | S | L2 |
 | ORG-04 | Recadrer les pages | Rogner (CropBox) ou redimensionner, recadrage automatique des marges | S | L3 |
 | MOD-01 | Modifier un PDF : images et pages | Ajouter ou remplacer des images, ajouter des pages | S | L3 |
-| MOD-02 | Modifier un PDF : texte existant | Limité en V1 à ajouter du nouveau texte et masquer l'ancien (la modification du texte d'origine est trop risquée, voir §11) | C | L3 |
+| MOD-02 | Modifier un PDF : texte existant | Mode « Modifier » : les blocs de texte de la page sont détectés (police, taille, gras/italique, couleur, interligne), ou reconnus par OCR hors ligne si la page est numérisée. Le texte est corrigé directement sur la page, en temps réel ; les blocs peuvent être déplacés, supprimés, et de nouveaux blocs ajoutés. À l'enregistrement, les glyphes d'origine sont réellement retirés du flux de contenu (le reste de la ligne ne bouge pas) et le nouveau texte est écrit avec une police embarquée. Sur une page numérisée, l'ancien texte est recouvert | S | L3 |
 | MOD-03 | Masquage (caviardage) | Suppression réelle du contenu d'une zone, et pas seulement un rectangle noir par-dessus | C | L3 |
 | CRE-01 | Créer un PDF depuis des images | JPG/PNG de la galerie ou des fichiers → PDF | M | L3 |
 | CRE-02 | Créer un PDF vierge | Formats A4, Letter, A5 ; page blanche, lignée ou quadrillée | S | L3 |
@@ -277,6 +278,7 @@ com.ninereader
 | Moteur tout-en-un | MuPDF | ⚠️ Licence **AGPL** : impose de publier le code source de l'application ; à écarter sauf licence commerciale |
 | Création à partir d'images | `android.graphics.pdf.PdfDocument` | Natif |
 | OCR | **ML Kit Text Recognition** (hors ligne) | Tesseract (tess-two) |
+| Polices du texte modifié (MOD-02) | **Liberation Sans / Serif / Mono** 2.1.5 (SIL OFL 1.1), embarquées en sous-ensemble | Noto (plus lourd) |
 | Traduction | ML Kit Translation (hors ligne) | — |
 | Synthèse vocale | `android.speech.tts.TextToSpeech` | Natif |
 | Base locale | Room | — |
@@ -386,7 +388,7 @@ Durée totale indicative : **environ 22 semaines**, à ajuster selon la taille d
 
 | Risque | Impact | Mitigation |
 |---|---|---|
-| Modification du texte existant trop complexe (polices embarquées, encodages) | Fort | V1 limitée à l'ajout et au masquage de texte (MOD-02) |
+| Modification du texte existant trop complexe (polices embarquées, encodages) | Fort | Le texte modifié est réécrit avec une police métriquement compatible embarquée (Liberation ≈ Arial / Times / Courier) au lieu de la police d'origine, souvent incomplète ; seuls les opérateurs de texte du bloc modifié sont retirés ; texte non supprimable (XObject, police Type 3) recouvert ; tests unitaires dédiés (MOD-02) |
 | Reflow de mauvaise qualité sur les PDF complexes | Moyen | Heuristiques par blocs de texte ; retour automatique à la vue originale |
 | Licence d'une bibliothèque incompatible (GPL/AGPL) | Fort | Vérification systématique en L0 et à chaque nouvelle dépendance |
 | Mémoire insuffisante sur gros PDF ou appareils modestes | Fort | Rendu par tuiles, cache borné, tests sur appareil bas de gamme |
