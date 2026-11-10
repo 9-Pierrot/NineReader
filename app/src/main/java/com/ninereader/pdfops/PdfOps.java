@@ -145,8 +145,7 @@ public final class PdfOps {
             int i = 0;
             for (Uri uri : inputs) {
                 check(progress);
-                String type = context.getContentResolver().getType(uri);
-                if (type != null && type.startsWith("image/")) {
+                if (!isPdf(context, uri)) {
                     addImagePage(context, out, uri);
                 } else {
                     PdfBoxHelper.Loaded l = PdfBoxHelper.load(context, uri, null);
@@ -160,6 +159,23 @@ public final class PdfOps {
         } finally {
             for (PdfBoxHelper.Loaded l : opened) l.close();
         }
+    }
+
+    /**
+     * Whether a URI points to a PDF: by MIME type when the provider gives one, otherwise by the
+     * "%PDF" signature at the start of the content (file URIs have no type).
+     */
+    static boolean isPdf(@NonNull Context context, @NonNull Uri uri) throws IOException {
+        String type = context.getContentResolver().getType(uri);
+        if (type != null && type.startsWith("image/")) return false;
+        if ("application/pdf".equals(type)) return true;
+        byte[] head = new byte[1024];
+        int n;
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new IOException("Cannot open " + uri);
+            n = in.read(head);
+        }
+        return n > 0 && new String(head, 0, n, java.nio.charset.StandardCharsets.ISO_8859_1).contains("%PDF");
     }
 
     /** Adds an image as a new A4 page (orientation follows the image). */
@@ -338,7 +354,8 @@ public final class PdfOps {
 
     static boolean isRecompressible(@NonNull PDImageXObject img) {
         if (img.isStencil()) return false;
-        if (img.getCOSObject().containsKey(COSName.SMASK) || img.getCOSObject().containsKey(COSName.MASK)) return false;
+        // Colour-key / stencil masks cannot survive JPEG; soft masks (SMask) are kept as they are.
+        if (img.getCOSObject().containsKey(COSName.MASK)) return false;
         if (img.getBitsPerComponent() == 1) return false;
         return img.getCOSObject().getLength() > 16 * 1024;
     }
@@ -413,12 +430,18 @@ public final class PdfOps {
             int w = bmp.getWidth();
             int h = bmp.getHeight();
             float scale = Math.min(1f, level.maxDimension / (float) Math.max(w, h));
-            Bitmap scaled = bmp;
-            if (scale < 1f) {
-                scaled = Bitmap.createScaledBitmap(bmp, Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(h * scale)), true);
-            }
-            PDImageXObject jpeg = JPEGFactory.createFromImage(doc, scaled, level.quality);
-            if (scaled != bmp) scaled.recycle();
+            int nw = Math.max(1, Math.round(w * scale));
+            int nh = Math.max(1, Math.round(h * scale));
+            // Opaque copy: transparency stays in the original soft mask, which is reused as is.
+            Bitmap opaque = Bitmap.createBitmap(nw, nh, Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(opaque);
+            canvas.drawColor(0xFFFFFFFF);
+            canvas.drawBitmap(bmp, null, new android.graphics.Rect(0, 0, nw, nh), new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG));
+            opaque.setHasAlpha(false);
+            PDImageXObject jpeg = JPEGFactory.createFromImage(doc, opaque, level.quality);
+            opaque.recycle();
+            COSBase smask = img.getCOSObject().getDictionaryObject(COSName.SMASK);
+            if (smask != null) jpeg.getCOSObject().setItem(COSName.SMASK, smask);
             if (jpeg.getCOSObject().getLength() >= original) return null;
             return jpeg;
         } finally {

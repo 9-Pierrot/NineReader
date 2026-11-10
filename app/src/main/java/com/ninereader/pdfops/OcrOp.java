@@ -18,7 +18,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.ninereader.annotations.PdfAnnotationWriter;
 import com.ninereader.reader.PageTransform;
 import com.ninereader.reader.PdfEngine;
-import com.ninereader.reader.ReflowFormatter;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
@@ -87,7 +86,7 @@ public final class OcrOp {
             for (int p : pages) {
                 PdfOps.check(progress);
                 progress.report(i++, pages.size() + 1);
-                if (!force && ReflowFormatter.hasUsableText(engine.pageText(p))) continue;
+                if (!force && hasTextLayer(engine.pageText(p))) continue;
                 float w = engine.pageWidth(p);
                 float h = engine.pageHeight(p);
                 float scale = OCR_DPI / 72f;
@@ -139,6 +138,15 @@ public final class OcrOp {
             progress.report(pages.size() + 1, pages.size() + 1);
             return new Result(PdfBoxHelper.saveKeepingProtection(context, doc, password), recognized.size());
         }
+    }
+
+    /** Whether a page already has a text layer (a previous OCR, or a born-digital page). */
+    static boolean hasTextLayer(@NonNull String pageText) {
+        int letters = 0;
+        for (int i = 0; i < pageText.length() && letters < 20; i++) {
+            if (Character.isLetterOrDigit(pageText.charAt(i))) letters++;
+        }
+        return letters >= 20;
     }
 
     /** Writes invisible text (rendering mode 3) aligned on the recognised word boxes. */
