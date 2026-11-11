@@ -88,6 +88,36 @@ public class TextLayoutAnalyzerTest {
         assertEquals("Bonjour monde", TextLayoutAnalyzer.analyze(0, g).get(0).text);
     }
 
+    /**
+     * Dense page whose glyphs sit on slightly jittered baselines (mixed fonts, superscripts, glyphs
+     * drawn out of order): the line grouping must not depend on a non-transitive comparator, which
+     * makes TimSort throw "Comparison method violates its general contract" and the edit mode report
+     * "no text" on the whole page.
+     */
+    @Test
+    public void densePageWithJitteredBaselines() {
+        for (int seed = 0; seed < 40; seed++) {
+            java.util.Random rnd = new java.util.Random(seed);
+            List<Glyph> g = new ArrayList<>();
+            int lines = 20 + rnd.nextInt(50);
+            float jitter = 1 + rnd.nextFloat() * 8; // superscripts, subscripts, mixed fonts
+            float base = 800;
+            for (int l = 0; l < lines; l++) {
+                base -= 8 + rnd.nextFloat() * 6;
+                int n = 20 + rnd.nextInt(100);
+                for (int i = 0; i < n; i++) {
+                    float size = rnd.nextInt(4) == 0 ? 6 + rnd.nextInt(4) : 9 + rnd.nextInt(4);
+                    g.add(new Glyph("a", 30 + rnd.nextFloat() * 500, base + (rnd.nextFloat() - 0.5f) * jitter, 4f, size, "Arial", 0xFF000000));
+                }
+            }
+            if (rnd.nextBoolean()) java.util.Collections.shuffle(g, rnd);
+            List<TextBlock> blocks = TextLayoutAnalyzer.analyze(0, g);
+            int chars = 0;
+            for (TextBlock b : blocks) chars += b.text.replace(" ", "").replace("\n", "").length();
+            assertEquals("seed " + seed, g.size(), chars);
+        }
+    }
+
     @Test
     public void emptyPage() {
         assertTrue(TextLayoutAnalyzer.analyze(0, new ArrayList<>()).isEmpty());

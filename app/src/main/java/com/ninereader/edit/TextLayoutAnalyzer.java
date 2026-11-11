@@ -69,12 +69,10 @@ public final class TextLayoutAnalyzer {
         for (Glyph g : glyphs) {
             if (g.size > 0 && !g.text.trim().isEmpty()) sorted.add(g);
         }
-        // Top to bottom, then left to right.
-        Collections.sort(sorted, (a, b) -> {
-            float tol = Math.max(a.size, b.size) * 0.35f;
-            if (Math.abs(a.baseline - b.baseline) > tol) return Float.compare(b.baseline, a.baseline);
-            return Float.compare(a.x, b.x);
-        });
+        // Top to bottom; rows are then sorted left to right. The comparator must be a total order: a
+        // "same line within a tolerance" comparison is not transitive and makes TimSort throw on dense
+        // pages (superscripts, mixed fonts), which left the whole page without editable text.
+        Collections.sort(sorted, (a, b) -> Float.compare(b.baseline, a.baseline));
         List<List<Glyph>> rows = new ArrayList<>();
         List<Glyph> row = null;
         float rowBaseline = 0;

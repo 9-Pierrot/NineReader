@@ -2,6 +2,7 @@ package com.ninereader.ui.reader;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +30,8 @@ import java.util.function.Supplier;
  * PDF glyphs, or by OCR for scanned pages. Results are cached per page.
  */
 public class TextEditSession {
+
+    private static final String TAG = "TextEditSession";
 
     private final Context context;
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
@@ -112,14 +115,25 @@ public class TextEditSession {
                     loaded = l;
                 }
                 if (page < l.doc.getNumberOfPages()) result = TextBlockExtractor.fromPdf(l.doc, page);
-                PdfEngine pdf = e.get();
-                if (result.isEmpty() && pdf != null && !pdf.isClosed() && !ReflowFormatter.hasUsableText(pdf.pageText(page))) {
-                    // Scanned page: recognise its text (offline OCR).
-                    result = TextBlockExtractor.fromOcr(context, pdf, page);
-                    ocr = !result.isEmpty();
-                }
             } catch (IOException | RuntimeException ex) {
+                Log.w(TAG, "glyph extraction failed on page " + page, ex);
                 result = Collections.emptyList();
+            }
+            if (result.isEmpty()) {
+                // Scanned page, or text the glyph analysis could not read: recognise it (offline OCR)
+                // rather than report a page without text.
+                try {
+                    PdfEngine pdf = e.get();
+                    if (pdf != null && !pdf.isClosed()) {
+                        if (!ReflowFormatter.hasUsableText(pdf.pageText(page))) Log.i(TAG, "page " + page + " has no text layer, OCR");
+                        else Log.w(TAG, "page " + page + " has a text layer but no block was found, OCR");
+                        result = TextBlockExtractor.fromOcr(context, pdf, page);
+                        ocr = !result.isEmpty();
+                    }
+                } catch (IOException | RuntimeException ex) {
+                    Log.w(TAG, "OCR failed on page " + page, ex);
+                    result = Collections.emptyList();
+                }
             }
             if (gen != generation) return;
             blocks.put(page, result);

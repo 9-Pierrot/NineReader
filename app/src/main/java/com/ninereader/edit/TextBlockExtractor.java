@@ -60,8 +60,19 @@ public final class TextBlockExtractor {
                 // Unknown colour space: keep black.
             }
             String font = t.getFont() == null ? null : t.getFont().getName();
-            glyphs.add(new Glyph(unicode, m.getTranslateX(), m.getTranslateY(), t.getWidthDirAdj(), t.getFontSizeInPt(), font, color));
+            glyphs.add(new Glyph(unicode, m.getTranslateX(), m.getTranslateY(), t.getWidthDirAdj(), sizeOf(t), font, color));
         }
+    }
+
+    /**
+     * Font size of a glyph in user space (points). {@link TextPosition#getFontSizeInPt()} is truncated to
+     * an integer and ignores the CTM: it is 0 for PDFs that draw with "1 Tf" and scale through "cm" (or
+     * use sizes below 1), which hid all their text. The text rendering matrix holds the real size.
+     */
+    static float sizeOf(@NonNull TextPosition t) {
+        Matrix m = t.getTextMatrix();
+        float size = (float) Math.hypot(m.getShearX(), m.getScaleY());
+        return size > 0.01f && !Float.isInfinite(size) ? size : t.getFontSizeInPt();
     }
 
     /** Glyphs of a page (0-based). */

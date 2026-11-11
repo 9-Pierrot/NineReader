@@ -258,7 +258,7 @@ public final class PdfTextEditor {
             if (current < 0 || depth > 0) return;
             Matrix m = t.getTextMatrix();
             float cx = m.getTranslateX() + t.getWidthDirAdj() / 2f;
-            float cy = m.getTranslateY() + t.getFontSizeInPt() * 0.3f;
+            float cy = m.getTranslateY() + TextBlockExtractor.sizeOf(t) * 0.3f;
             int[] c = counts.get(current);
             if (c == null) {
                 c = new int[2];
