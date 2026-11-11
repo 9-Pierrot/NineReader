@@ -107,6 +107,7 @@ public class EditModeFlowTest {
     @Test
     public void editExistingTextAndAddTextThenSave() throws IOException {
         Uri uri = TestPdfs.text(context, 2, "edit_flow.pdf");
+        TestPdfs.resetState(context, uri);
         Intent intent = new Intent(context, ReaderActivity.class).setData(uri).putExtra(ReaderActivity.EXTRA_ACTION, "edit");
         try (ActivityScenario<ReaderActivity> scenario = ActivityScenario.launch(intent)) {
             AtomicReference<ReaderActivity> act = new AtomicReference<>();
@@ -171,6 +172,7 @@ public class EditModeFlowTest {
     @Test
     public void scannedPageIsRecognisedByOcr() throws IOException {
         Uri uri = TestPdfs.scanned(context);
+        TestPdfs.resetState(context, uri);
         Intent intent = new Intent(context, ReaderActivity.class).setData(uri).putExtra(ReaderActivity.EXTRA_ACTION, "edit");
         try (ActivityScenario<ReaderActivity> scenario = ActivityScenario.launch(intent)) {
             AtomicReference<ReaderActivity> act = new AtomicReference<>();

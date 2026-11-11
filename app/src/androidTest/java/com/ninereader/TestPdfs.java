@@ -51,6 +51,22 @@ public final class TestPdfs {
      * page 0 has a link to the last page and the outline has one entry per page.
      */
     @NonNull
+    /**
+     * Forgets what a previous run left for a test document (reading position, zoom, mode, pending
+     * edits), so that tests do not depend on each other when the app stays installed between runs.
+     */
+    public static void resetState(@NonNull Context context, @NonNull Uri uri) {
+        com.ninereader.data.AppDatabase db = com.ninereader.data.AppDatabase.get(context);
+        com.ninereader.data.entity.DocumentEntity doc = db.documents().byUri(uri.toString());
+        if (doc != null) {
+            doc.lastPage = 0;
+            doc.lastZoom = 1f;
+            doc.readingMode = null;
+            db.documents().update(doc);
+        }
+        db.drafts().delete(uri.toString());
+    }
+
     public static Uri text(@NonNull Context context, int pages, @NonNull String name) throws IOException {
         PDFBoxResourceLoader.init(context);
         File f = file(context, name);
