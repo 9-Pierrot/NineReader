@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Crystal theme window background (light): diagonal gradient and three soft halos. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:angle="315"
+                android:centerColor="#F1E8FF"
+                android:endColor="#E0F5FF"
+                android:startColor="#E4EEFF"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.12"
+                android:centerY="0.10"
+                android:endColor="#007FA6FF"
+                android:gradientRadius="80%p"
+                android:startColor="#997FA6FF"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.98"
+                android:centerY="0.42"
+                android:endColor="#00FFA6D8"
+                android:gradientRadius="75%p"
+                android:startColor="#8CFFA6D8"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.25"
+                android:centerY="0.92"
+                android:endColor="#0086E1FF"
+                android:gradientRadius="85%p"
+                android:startColor="#8C86E1FF"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

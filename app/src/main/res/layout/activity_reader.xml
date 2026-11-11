@@ -7,6 +7,12 @@
     android:layout_height="match_parent"
     android:background="@color/reader_bg_light">
 
+    <!-- Pages recorded for the blur of the floating bottom bars (which stay outside of it) -->
+    <com.ninereader.ui.components.BlurTargetLayout
+        android:id="@+id/blur_target"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <LinearLayout
         android:id="@+id/content_row"
         android:layout_width="match_parent"
@@ -31,6 +37,7 @@
             android:focusableInTouchMode="true"
             android:scrollbars="none" />
     </LinearLayout>
+    </com.ninereader.ui.components.BlurTargetLayout>
 
     <!-- Blue light filter / dimming overlay (RAP-03) -->
     <View
@@ -158,20 +165,24 @@
         android:layout_gravity="bottom"
         android:orientation="vertical">
 
-        <!-- Annotation / TTS / selection bars are inserted here by the activity -->
-        <FrameLayout
+        <!-- Annotation / edit / TTS / selection bars are inserted here by the activity (floating pill,
+             hidden while empty) -->
+        <com.ninereader.ui.components.FloatingNavBar
             android:id="@+id/contextual_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:visibility="gone" />
 
-        <LinearLayout
+        <!-- Reading bar: floating pill, the pages show blurred through it -->
+        <com.ninereader.ui.components.FloatingNavBar
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceContainer"
-            android:elevation="4dp"
             android:orientation="vertical"
-            android:paddingTop="4dp">
+            android:padding="6dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -375,7 +386,7 @@
                         android:textAppearance="?attr/textAppearanceLabelSmall" />
                 </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </com.ninereader.ui.components.FloatingNavBar>
     </LinearLayout>
 
     <TextView

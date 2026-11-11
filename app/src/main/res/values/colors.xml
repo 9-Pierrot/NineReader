@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="md_primary">#2B5BB5</color>
+    <color name="md_primary">#1F45E0</color>
     <color name="md_on_primary">#FFFFFF</color>
-    <color name="md_primary_container">#D9E2FF</color>
-    <color name="md_on_primary_container">#001A43</color>
-    <color name="md_secondary">#575E71</color>
+    <color name="md_primary_container">#DDE1FF</color>
+    <color name="md_on_primary_container">#001257</color>
+    <color name="md_secondary">#00658E</color>
     <color name="md_on_secondary">#FFFFFF</color>
-    <color name="md_secondary_container">#DBE2F9</color>
-    <color name="md_on_secondary_container">#141B2C</color>
-    <color name="md_tertiary">#715573</color>
+    <color name="md_secondary_container">#C7E7FF</color>
+    <color name="md_on_secondary_container">#001E2E</color>
+    <color name="md_tertiary">#6B4EA2</color>
     <color name="md_on_tertiary">#FFFFFF</color>
-    <color name="md_tertiary_container">#FBD7FC</color>
-    <color name="md_on_tertiary_container">#29132D</color>
-    <color name="md_error">#BA1A1A</color>
-    <color name="md_background">#FAF9FD</color>
-    <color name="md_on_background">#1B1B1F</color>
-    <color name="md_surface">#FAF9FD</color>
-    <color name="md_on_surface">#1B1B1F</color>
-    <color name="md_surface_variant">#E1E2EC</color>
-    <color name="md_on_surface_variant">#44464F</color>
-    <color name="md_outline">#757780</color>
-    <color name="md_outline_variant">#C5C6D0</color>
+    <color name="md_tertiary_container">#EBDDFF</color>
+    <color name="md_on_tertiary_container">#25005A</color>
+    <color name="md_error">#B3261E</color>
+    <color name="md_background">#FBFCFE</color>
+    <color name="md_on_background">#1D1B20</color>
+    <color name="md_surface">#FBFCFE</color>
+    <color name="md_on_surface">#1D1B20</color>
+    <color name="md_surface_variant">#E7E0EC</color>
+    <color name="md_on_surface_variant">#49454F</color>
+    <color name="md_outline">#79747E</color>
+    <color name="md_outline_variant">#CAC4D0</color>
     <color name="md_surface_container_lowest">#FFFFFF</color>
-    <color name="md_surface_container_low">#F4F3F7</color>
-    <color name="md_surface_container">#EEEDF1</color>
-    <color name="md_surface_container_high">#E9E7EC</color>
-    <color name="md_surface_container_highest">#E3E2E6</color>
+    <color name="md_surface_container_low">#F4F5FA</color>
+    <color name="md_surface_container">#EEF0F6</color>
+    <color name="md_surface_container_high">#E8EAF1</color>
+    <color name="md_surface_container_highest">#E2E4EC</color>
 
     <!-- Reader backgrounds (around the pages) -->
     <color name="reader_bg_light">#E6E6EA</color>
@@ -48,4 +48,69 @@
 
     <color name="rsvp_focus">#E53935</color>
     <color name="ic_launcher_background">#2B5BB5</color>
+    <color name="md_inverse_primary">#B8C4FF</color>
+
+    <!-- Sepia (always light) -->
+    <color name="sepia_primary">#7A4E1D</color>
+    <color name="sepia_primary_container">#FFDCBC</color>
+    <color name="sepia_on_primary_container">#2C1600</color>
+    <color name="sepia_secondary">#6F5B40</color>
+    <color name="sepia_secondary_container">#F9DFBB</color>
+    <color name="sepia_on_secondary_container">#261904</color>
+    <color name="sepia_tertiary">#52643F</color>
+    <color name="sepia_background">#F6EEDC</color>
+    <color name="sepia_on_background">#2E2416</color>
+    <color name="sepia_surface_variant">#EADFC8</color>
+    <color name="sepia_on_surface_variant">#5C4E3C</color>
+    <color name="sepia_surface_container_lowest">#FBF6EA</color>
+    <color name="sepia_surface_container_low">#F1E7D2</color>
+    <color name="sepia_surface_container">#EDE2CB</color>
+    <color name="sepia_surface_container_high">#E7DBC2</color>
+    <color name="sepia_surface_container_highest">#E1D4B9</color>
+    <color name="sepia_outline">#8C7B62</color>
+    <color name="sepia_outline_variant">#D6C6A8</color>
+
+    <!-- AMOLED (overlay on the dark theme): pure black, pure white, vivid accents -->
+    <color name="amoled_black">#000000</color>
+    <color name="amoled_white">#FFFFFF</color>
+    <color name="amoled_surface_container_low">#0B0B0D</color>
+    <color name="amoled_surface_container">#101013</color>
+    <color name="amoled_surface_container_high">#17171B</color>
+    <color name="amoled_surface_container_highest">#1F1F24</color>
+    <color name="amoled_on_surface_variant">#DCDCE4</color>
+    <color name="amoled_outline">#9C9CAA</color>
+    <color name="amoled_outline_variant">#3A3A44</color>
+    <color name="amoled_primary">#6F8CFF</color>
+    <color name="amoled_primary_container">#2448FF</color>
+    <color name="amoled_secondary">#2EC5FF</color>
+    <color name="amoled_secondary_container">#0062A3</color>
+    <color name="amoled_tertiary">#C77DFF</color>
+    <color name="amoled_tertiary_container">#7A22E0</color>
+    <color name="amoled_error">#FF5A5F</color>
+    <color name="amoled_error_container">#B0001C</color>
+
+    <!-- Crystal: translucent glass over a gradient (light values; dark ones in values-night) -->
+    <color name="crystal_primary">#3346F0</color>
+    <color name="crystal_on_primary">#FFFFFF</color>
+    <color name="crystal_primary_container">#8CFFFFFF</color>
+    <color name="crystal_on_primary_container">#0B1A7A</color>
+    <color name="crystal_secondary">#0B6FA8</color>
+    <color name="crystal_secondary_container">#80FFFFFF</color>
+    <color name="crystal_on_secondary_container">#07304A</color>
+    <color name="crystal_tertiary">#8A3FC4</color>
+    <color name="crystal_on_surface">#141833</color>
+    <color name="crystal_surface">#59FFFFFF</color>
+    <color name="crystal_surface_variant">#73FFFFFF</color>
+    <color name="crystal_on_surface_variant">#3F4466</color>
+    <color name="crystal_surface_container_lowest">#4DFFFFFF</color>
+    <color name="crystal_surface_container_low">#73FFFFFF</color>
+    <color name="crystal_surface_container">#E6F3F5FF</color>
+    <color name="crystal_surface_container_high">#F0F6F7FF</color>
+    <color name="crystal_surface_container_highest">#99FFFFFF</color>
+    <color name="crystal_outline">#7A80A8</color>
+    <color name="crystal_outline_variant">#B3FFFFFF</color>
+    <color name="crystal_glass_fill">#80FFFFFF</color>
+    <color name="crystal_glass_stroke">#A6FFFFFF</color>
+    <color name="crystal_glass_nav_fill">#8CFFFFFF</color>
+    <color name="crystal_glass_nav_highlight">#D9FFFFFF</color>
 </resources>

@@ -4,13 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
 /** Typed access to user preferences (backed by the default SharedPreferences used by the settings screen). */
 public final class Prefs {
 
     public static final String KEY_APP_THEME = "app_theme";
+    public static final String KEY_DYNAMIC_COLORS = "dynamic_colors";
     public static final String KEY_READING_MODE = "reading_mode";
     public static final String KEY_READER_THEME = "reader_theme";
     public static final String KEY_TAP_ZONES = "tap_zones";
@@ -44,6 +44,11 @@ public final class Prefs {
 
     public String appTheme() {
         return sp.getString(KEY_APP_THEME, "system");
+    }
+
+    /** Material You colours from the wallpaper (Android 12+, not with Crystal and Sepia). */
+    public boolean dynamicColors() {
+        return sp.getBoolean(KEY_DYNAMIC_COLORS, false);
     }
 
     public String readingMode() {
@@ -171,20 +176,8 @@ public final class Prefs {
         return sp.getBoolean(KEY_STYLUS_ONLY, false);
     }
 
-    /** Applies the app-wide light/dark preference. */
+    /** Applies the light / dark mode of the chosen app theme. */
     public static void applyAppTheme(@NonNull String value) {
-        int mode;
-        switch (value) {
-            case "light":
-                mode = AppCompatDelegate.MODE_NIGHT_NO;
-                break;
-            case "dark":
-                mode = AppCompatDelegate.MODE_NIGHT_YES;
-                break;
-            default:
-                mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
-                break;
-        }
-        AppCompatDelegate.setDefaultNightMode(mode);
+        com.ninereader.ui.theme.ThemeManager.applyNightMode(value);
     }
 }

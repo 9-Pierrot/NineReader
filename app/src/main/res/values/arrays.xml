@@ -4,6 +4,9 @@
         <item>system</item>
         <item>light</item>
         <item>dark</item>
+        <item>amoled</item>
+        <item>crystal</item>
+        <item>sepia</item>
     </string-array>
     <string-array name="reading_mode_values" translatable="false">
         <item>continuous</item>

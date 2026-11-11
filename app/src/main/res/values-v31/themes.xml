@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AMOLED + Material You: brighter, more saturated tones than the standard dark dynamic theme
+         (accent 300 = tone 70, 600 = tone 40, 700 = tone 30). -->
+    <style name="ThemeOverlay.NineReader.AmoledDynamic" parent="">
+        <item name="colorPrimary">@android:color/system_accent1_300</item>
+        <item name="colorOnPrimary">@color/amoled_black</item>
+        <item name="colorPrimaryContainer">@android:color/system_accent1_600</item>
+        <item name="colorOnPrimaryContainer">@color/amoled_white</item>
+        <item name="colorPrimaryInverse">@android:color/system_accent1_600</item>
+        <item name="colorSecondary">@android:color/system_accent2_300</item>
+        <item name="colorOnSecondary">@color/amoled_black</item>
+        <!-- The main accent, not a coloured grey: selected tabs and checked choices stay colourful -->
+        <item name="colorSecondaryContainer">@android:color/system_accent1_700</item>
+        <item name="colorOnSecondaryContainer">@color/amoled_white</item>
+        <item name="colorTertiary">@android:color/system_accent3_300</item>
+        <item name="colorOnTertiary">@color/amoled_black</item>
+        <item name="colorTertiaryContainer">@android:color/system_accent3_600</item>
+        <item name="colorOnTertiaryContainer">@color/amoled_white</item>
+    </style>
+</resources>

@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -29,7 +30,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import com.ninereader.ui.theme.ThemedActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -84,7 +85,7 @@ import io.legere.pdfiumandroid.PdfDocument;
  * The reader (§7.1 screen 3): continuous / paged / double page layouts, zoom, themes, immersive
  * bars, search, selection, bookmarks, side panel, annotations, forms, read-aloud and reading tools.
  */
-public class ReaderActivity extends AppCompatActivity implements ReaderPanelFragment.Host, ZoomableRecyclerView.Listener {
+public class ReaderActivity extends ThemedActivity implements ReaderPanelFragment.Host, ZoomableRecyclerView.Listener {
 
     public static final String EXTRA_PAGE = "page";
     /** Action to run once the document is open: reflow, rsvp, tts, annotate, sign, redact, presentation. */
@@ -167,6 +168,7 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             presentation = state.getBoolean(STATE_PRESENTATION, false);
         }
         setupInsets();
+        setupFloatingBars();
         setupToolbar();
         setupBottomBar();
         setupSearchBar();
@@ -535,6 +537,9 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
         }
         if (presentation) bg = 0xFF000000;
         b.root.setBackgroundColor(bg);
+        // Around the pages in the blur of the floating bars
+        b.bottomBar.setBackdropColor(bg);
+        b.contextualBar.setBackdropColor(bg);
         if (adapter != null) {
             adapter.setColorFilter(theme.colorFilter(), theme.apply(0xFFFFFFFF));
             adapter.notifyItemRangeChanged(0, adapter.getItemCount());
@@ -598,15 +603,50 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
 
     // ------------------------------------------------------------------ bars & insets
 
+    /** Maximum width of the floating bottom bars (centred on tablets and in landscape). */
+    private static final int FLOATING_BAR_MAX_WIDTH_DP = 560;
+
+    /**
+     * The reading bar and the contextual bars (annotation, edit, read aloud, selection) float above the
+     * pages as pills, the pages showing blurred through them.
+     */
+    private void setupFloatingBars() {
+        b.bottomBar.setBlurTarget(b.blurTarget);
+        b.contextualBar.setBlurTarget(b.blurTarget);
+        b.contextualBar.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
+            @Override
+            public void onChildViewAdded(View parent, View child) {
+                // The pill draws the blurred background: the bar itself must be transparent.
+                child.setBackground(null);
+                child.setElevation(0f);
+                b.contextualBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onChildViewRemoved(View parent, View child) {
+                if (b.contextualBar.getChildCount() == 0) b.contextualBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(b.root, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
             b.topBar.setPadding(bars.left, bars.top, bars.right, 0);
-            b.bottomArea.setPadding(bars.left, 0, bars.right, Math.max(bars.bottom, ime.bottom));
+            // Floating bars: 12 dp from the edges, above the system bars, at most 560 dp wide.
+            float density = getResources().getDisplayMetrics().density;
+            int margin = Math.round(12 * density);
+            int available = b.root.getWidth() - bars.left - bars.right - 2 * margin;
+            int extra = Math.max(0, (available - Math.round(FLOATING_BAR_MAX_WIDTH_DP * density)) / 2);
+            b.bottomArea.setPadding(bars.left + margin + extra, 0, bars.right + margin + extra,
+                    Math.max(bars.bottom, ime.bottom) + margin);
             b.panelOverlay.setPadding(bars.left, bars.top, 0, bars.bottom);
             b.panelDocked.setPadding(bars.left, bars.top, 0, bars.bottom);
             return insets;
+        });
+        b.root.addOnLayoutChangeListener((v, l, t, r, bt, ol, ot, or, ob) -> {
+            if (r - l != or - ol) ViewCompat.requestApplyInsets(b.root);
         });
     }
 

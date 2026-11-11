@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Crystal theme window background (dark): night gradient and three coloured halos. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:angle="315"
+                android:centerColor="#1A1446"
+                android:endColor="#0B2643"
+                android:startColor="#0B1030"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.12"
+                android:centerY="0.10"
+                android:endColor="#003550FF"
+                android:gradientRadius="80%p"
+                android:startColor="#733550FF"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.98"
+                android:centerY="0.42"
+                android:endColor="#00B4359E"
+                android:gradientRadius="75%p"
+                android:startColor="#52B4359E"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:centerX="0.25"
+                android:centerY="0.92"
+                android:endColor="#000E9FB5"
+                android:gradientRadius="85%p"
+                android:startColor="#4D0E9FB5"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

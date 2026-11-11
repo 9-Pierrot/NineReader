@@ -13,7 +13,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import com.ninereader.ui.theme.ThemedActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -38,7 +38,7 @@ import com.ninereader.util.AppExecutors;
 import java.io.IOException;
 
 /** Compare two PDFs side by side (CMP-02): split screen, optional synchronised scrolling. */
-public class CompareActivity extends AppCompatActivity {
+public class CompareActivity extends ThemedActivity {
 
     /** Holds both documents across configuration changes. */
     public static class CompareViewModel extends AndroidViewModel {

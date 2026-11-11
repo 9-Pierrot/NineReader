@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Theme attributes of the app (themes, glass effect, floating bottom bar). -->
+<resources>
+    <!-- Floating bottom bar -->
+    <attr name="navBarFill" format="color" />
+    <attr name="navBarStroke" format="color" />
+    <attr name="navBarHighlight" format="color" />
+    <attr name="navBarSelected" format="color" />
+    <attr name="navBarElevation" format="dimension" />
+
+    <!-- Glass (Crystal theme) -->
+    <attr name="glassFill" format="color" />
+    <attr name="glassStroke" format="color" />
+    <attr name="glassNavFill" format="color" />
+    <attr name="glassNavHighlight" format="color" />
+
+    <!-- Cards: filled in the solid themes, translucent glass with a thin border in Crystal -->
+    <attr name="cardFill" format="color" />
+    <attr name="cardStroke" format="color" />
+    <attr name="cardStrokeWidth" format="dimension" />
+    <attr name="cardRadius" format="dimension" />
+</resources>

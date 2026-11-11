@@ -445,9 +445,12 @@
     <string name="widget_empty">Nothing being read</string>
 
     <string-array name="app_theme_labels">
-        <item>Follow system</item>
+        <item>System</item>
         <item>Light</item>
         <item>Dark</item>
+        <item>AMOLED</item>
+        <item>Crystal</item>
+        <item>Sepia</item>
     </string-array>
     <string-array name="reading_mode_labels">
         <item>Continuous scroll</item>
@@ -469,4 +472,7 @@
         <item>Red</item>
         <item>Black</item>
     </string-array>
+    <string name="pref_dynamic_colors">Material You colours</string>
+    <string name="pref_dynamic_colors_summary">Colours taken from the wallpaper (Android 12 and later)</string>
+    <string name="pref_dynamic_colors_unavailable">Not available with the Crystal and Sepia themes</string>
 </resources>

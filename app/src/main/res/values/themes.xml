@@ -30,6 +30,17 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">?attr/isLightTheme</item>
+        <item name="colorPrimaryInverse">@color/md_inverse_primary</item>
+        <!-- Solid themes: floating bottom bar and cards (Crystal replaces them, see Glass) -->
+        <item name="navBarFill">@color/nav_bar_fill</item>
+        <item name="navBarStroke">@color/nav_bar_stroke</item>
+        <item name="navBarHighlight">?attr/colorSecondaryContainer</item>
+        <item name="navBarSelected">?attr/colorOnSecondaryContainer</item>
+        <item name="navBarElevation">3dp</item>
+        <item name="cardFill">?attr/colorSurfaceContainerHighest</item>
+        <item name="cardStroke">@android:color/transparent</item>
+        <item name="cardStrokeWidth">0dp</item>
+        <item name="cardRadius">16dp</item>
     </style>
 
     <style name="Theme.NineReader" parent="Base.Theme.NineReader" />
@@ -38,8 +49,166 @@
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
     </style>
 
-    <style name="Widget.NineReader.ToolCard" parent="Widget.Material3.CardView.Filled">
-        <item name="cardCornerRadius">16dp</item>
+    <!-- Card following the theme: filled (solid themes) or glass (Crystal) -->
+    <style name="Widget.NineReader.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">?attr/cardFill</item>
+        <item name="strokeColor">?attr/cardStroke</item>
+        <item name="strokeWidth">?attr/cardStrokeWidth</item>
+        <item name="cardCornerRadius">?attr/cardRadius</item>
+    </style>
+
+    <style name="Widget.NineReader.ToolCard" parent="Widget.NineReader.Card" />
+
+    <!-- ================================================================== theme overlays
+         Applied by ThemeManager on top of the activity theme, in this order:
+         base palette -> Sepia | Crystal -> Material You -> AMOLED -> Glass (Crystal only). -->
+
+    <!-- Sepia: warm paper tones, always light -->
+    <style name="ThemeOverlay.NineReader.Sepia" parent="">
+        <item name="colorPrimary">@color/sepia_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryContainer">@color/sepia_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/sepia_on_primary_container</item>
+        <item name="colorSecondary">@color/sepia_secondary</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorSecondaryContainer">@color/sepia_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/sepia_on_secondary_container</item>
+        <item name="colorTertiary">@color/sepia_tertiary</item>
+        <item name="android:colorBackground">@color/sepia_background</item>
+        <item name="android:windowBackground">@color/sepia_background</item>
+        <item name="colorOnBackground">@color/sepia_on_background</item>
+        <item name="colorSurface">@color/sepia_background</item>
+        <item name="colorOnSurface">@color/sepia_on_background</item>
+        <item name="colorSurfaceVariant">@color/sepia_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/sepia_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/sepia_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/sepia_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/sepia_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/sepia_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/sepia_surface_container_highest</item>
+        <item name="colorOutline">@color/sepia_outline</item>
+        <item name="colorOutlineVariant">@color/sepia_outline_variant</item>
+        <item name="colorPrimaryInverse">@color/sepia_primary_container</item>
+        <item name="android:textColorPrimary">@color/sepia_on_background</item>
+        <item name="android:textColorSecondary">@color/sepia_on_surface_variant</item>
+    </style>
+
+    <!-- Crystal: translucent glass over a coloured gradient; follows the system light / dark mode -->
+    <style name="ThemeOverlay.NineReader.Crystal" parent="">
+        <item name="colorPrimary">@color/crystal_primary</item>
+        <item name="colorOnPrimary">@color/crystal_on_primary</item>
+        <item name="colorPrimaryContainer">@color/crystal_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/crystal_on_primary_container</item>
+        <item name="colorSecondary">@color/crystal_secondary</item>
+        <item name="colorSecondaryContainer">@color/crystal_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/crystal_on_secondary_container</item>
+        <item name="colorTertiary">@color/crystal_tertiary</item>
+        <!-- Screens are transparent: the window gradient shows through -->
+        <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/bg_crystal</item>
+        <item name="colorOnBackground">@color/crystal_on_surface</item>
+        <item name="colorSurface">@color/crystal_surface</item>
+        <item name="colorOnSurface">@color/crystal_on_surface</item>
+        <item name="colorSurfaceVariant">@color/crystal_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/crystal_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/crystal_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/crystal_surface_container_low</item>
+        <!-- Nearly opaque: menus, dialogs and sheets are drawn over sharp content -->
+        <item name="colorSurfaceContainer">@color/crystal_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/crystal_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/crystal_surface_container_highest</item>
+        <item name="colorOutline">@color/crystal_outline</item>
+        <item name="colorOutlineVariant">@color/crystal_outline_variant</item>
+        <item name="android:textColorPrimary">@color/crystal_on_surface</item>
+        <item name="android:textColorSecondary">@color/crystal_on_surface_variant</item>
+        <item name="glassFill">@color/crystal_glass_fill</item>
+        <item name="glassStroke">@color/crystal_glass_stroke</item>
+        <item name="glassNavFill">@color/crystal_glass_nav_fill</item>
+        <item name="glassNavHighlight">@color/crystal_glass_nav_highlight</item>
+    </style>
+
+    <!-- AMOLED, over the dark theme: pure black, pure white text, vivid accents -->
+    <style name="ThemeOverlay.NineReader.Amoled" parent="">
+        <item name="android:colorBackground">@color/amoled_black</item>
+        <item name="android:windowBackground">@color/amoled_black</item>
+        <item name="colorSurface">@color/amoled_black</item>
+        <item name="colorSurfaceDim">@color/amoled_black</item>
+        <item name="colorSurfaceContainerLowest">@color/amoled_black</item>
+        <item name="colorSurfaceContainerLow">@color/amoled_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/amoled_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/amoled_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/amoled_surface_container_highest</item>
+        <item name="colorSurfaceVariant">@color/amoled_surface_container_highest</item>
+        <item name="colorSurfaceBright">@color/amoled_surface_container_highest</item>
+        <item name="colorOnBackground">@color/amoled_white</item>
+        <item name="colorOnSurface">@color/amoled_white</item>
+        <item name="colorOnSurfaceVariant">@color/amoled_on_surface_variant</item>
+        <item name="colorSurfaceInverse">@color/amoled_white</item>
+        <item name="colorOnSurfaceInverse">@color/amoled_black</item>
+        <item name="colorOutline">@color/amoled_outline</item>
+        <item name="colorOutlineVariant">@color/amoled_outline_variant</item>
+        <item name="android:textColorPrimary">@color/amoled_text_primary</item>
+        <item name="android:textColorSecondary">@color/amoled_text_secondary</item>
+        <item name="android:textColorTertiary">@color/amoled_text_secondary</item>
+        <item name="colorPrimary">@color/amoled_primary</item>
+        <item name="colorOnPrimary">@color/amoled_black</item>
+        <item name="colorPrimaryContainer">@color/amoled_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/amoled_white</item>
+        <item name="colorPrimaryInverse">@color/amoled_primary_container</item>
+        <item name="colorSecondary">@color/amoled_secondary</item>
+        <item name="colorOnSecondary">@color/amoled_black</item>
+        <item name="colorSecondaryContainer">@color/amoled_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/amoled_white</item>
+        <item name="colorTertiary">@color/amoled_tertiary</item>
+        <item name="colorOnTertiary">@color/amoled_black</item>
+        <item name="colorTertiaryContainer">@color/amoled_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/amoled_white</item>
+        <item name="colorError">@color/amoled_error</item>
+        <item name="colorOnError">@color/amoled_black</item>
+        <item name="colorErrorContainer">@color/amoled_error_container</item>
+        <item name="colorOnErrorContainer">@color/amoled_white</item>
+    </style>
+
+    <!-- AMOLED with Material You: vivid tones of the wallpaper colours (Android 12+, see values-v31) -->
+    <style name="ThemeOverlay.NineReader.AmoledDynamic" parent="" />
+
+    <!-- Glass components (Crystal): translucent cards with a light rim, rounder shapes, no shadow -->
+    <style name="ThemeOverlay.NineReader.Glass" parent="">
+        <item name="cardFill">?attr/glassFill</item>
+        <item name="cardStroke">?attr/glassStroke</item>
+        <item name="cardStrokeWidth">1dp</item>
+        <item name="cardRadius">22dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="navBarFill">?attr/glassNavFill</item>
+        <item name="navBarStroke">?attr/glassStroke</item>
+        <item name="navBarHighlight">?attr/glassNavHighlight</item>
+        <item name="navBarSelected">?attr/colorPrimary</item>
+        <item name="navBarElevation">0dp</item>
+        <item name="shapeAppearanceCornerExtraSmall">@style/ShapeAppearance.NineReader.Glass.ExtraSmall</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.NineReader.Glass.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.NineReader.Glass.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.NineReader.Glass.Large</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.NineReader.Glass.ExtraLarge</item>
+    </style>
+
+    <style name="ShapeAppearance.NineReader.Glass.ExtraSmall" parent="ShapeAppearance.Material3.Corner.ExtraSmall">
+        <item name="cornerSize">10dp</item>
+    </style>
+
+    <style name="ShapeAppearance.NineReader.Glass.Small" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="ShapeAppearance.NineReader.Glass.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">22dp</item>
+    </style>
+
+    <style name="ShapeAppearance.NineReader.Glass.Large" parent="ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="ShapeAppearance.NineReader.Glass.ExtraLarge" parent="ShapeAppearance.Material3.Corner.ExtraLarge">
+        <item name="cornerSize">36dp</item>
     </style>
 
     <style name="TextAppearance.NineReader.SectionTitle" parent="TextAppearance.Material3.TitleMedium">

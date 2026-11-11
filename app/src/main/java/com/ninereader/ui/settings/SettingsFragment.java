@@ -45,13 +45,46 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private final ActivityResultLauncher<String[]> importLauncher = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(), this::importFrom);
 
+    /** Material You does not apply to Crystal and Sepia, which keep their own palette. */
+    private void updateDynamicColors(@androidx.annotation.NonNull androidx.preference.SwitchPreferenceCompat pref,
+                                     @androidx.annotation.NonNull String theme) {
+        boolean supported = com.ninereader.ui.theme.ThemeManager.supportsDynamicColors(theme);
+        pref.setEnabled(supported);
+        pref.setSummary(supported ? R.string.pref_dynamic_colors_summary : R.string.pref_dynamic_colors_unavailable);
+    }
+
+    /** Views do not change theme live: the screen is recreated once the new value is stored. */
+    private void recreateAfterChange() {
+        View v = getView();
+        if (v != null) v.post(() -> {
+            if (isAdded()) requireActivity().recreate();
+        });
+    }
+
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
         Preference theme = findPreference(Prefs.KEY_APP_THEME);
+        androidx.preference.SwitchPreferenceCompat dynamic = findPreference(Prefs.KEY_DYNAMIC_COLORS);
+        if (dynamic != null) {
+            dynamic.setVisible(com.ninereader.ui.theme.ThemeManager.dynamicColorsAvailable());
+            updateDynamicColors(dynamic, new Prefs(requireContext()).appTheme());
+            dynamic.setOnPreferenceChangeListener((p, value) -> {
+                recreateAfterChange();
+                return true;
+            });
+        }
         if (theme != null) {
             theme.setOnPreferenceChangeListener((p, value) -> {
-                Prefs.applyAppTheme(String.valueOf(value));
+                String old = new Prefs(requireContext()).appTheme();
+                String chosen = String.valueOf(value);
+                if (dynamic != null) updateDynamicColors(dynamic, chosen);
+                if (com.ninereader.ui.theme.ThemeManager.nightMode(old) != com.ninereader.ui.theme.ThemeManager.nightMode(chosen)) {
+                    // A new light / dark mode recreates every activity by itself.
+                    Prefs.applyAppTheme(chosen);
+                } else {
+                    recreateAfterChange();
+                }
                 return true;
             });
         }

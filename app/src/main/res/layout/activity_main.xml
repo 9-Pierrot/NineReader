@@ -1,25 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Smartphone: bottom navigation bar (§3.1) -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Smartphone (§3.1): the screens fill the whole window and scroll under a floating, blurred bottom bar -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?android:attr/colorBackground">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host"
-        android:name="androidx.navigation.fragment.NavHostFragment"
+    <!-- Content recorded for the blur: the bar must stay outside of it (it would blur itself) -->
+    <com.ninereader.ui.components.BlurTargetLayout
+        android:id="@+id/blur_target"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph" />
+        android:layout_height="match_parent">
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_nav"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/nav_host"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav_graph" />
+    </com.ninereader.ui.components.BlurTargetLayout>
+
+    <!-- Side margins, room above the system navigation bar, maximum width on large screens -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bar_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/main_navigation" />
-</LinearLayout>
+        android:layout_gravity="bottom"
+        android:clipToPadding="false"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="12dp">
+
+        <com.ninereader.ui.components.FloatingNavBar
+            android:id="@+id/floating_nav"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_max="480dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

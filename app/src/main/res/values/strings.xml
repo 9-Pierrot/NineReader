@@ -450,9 +450,12 @@
     <string name="widget_empty">Aucune lecture en cours</string>
 
     <string-array name="app_theme_labels">
-        <item>Selon le système</item>
+        <item>Système</item>
         <item>Clair</item>
         <item>Sombre</item>
+        <item>AMOLED</item>
+        <item>Cristal</item>
+        <item>Sépia</item>
     </string-array>
     <string-array name="reading_mode_labels">
         <item>Défilement continu</item>
@@ -474,4 +477,7 @@
         <item>Rouge</item>
         <item>Noir</item>
     </string-array>
+    <string name="pref_dynamic_colors">Couleurs Material You</string>
+    <string name="pref_dynamic_colors_summary">Couleurs tirées du fond d\'écran (Android 12 et plus)</string>
+    <string name="pref_dynamic_colors_unavailable">Non disponible avec les thèmes Cristal et Sépia</string>
 </resources>
