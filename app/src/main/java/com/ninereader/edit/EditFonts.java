@@ -13,7 +13,6 @@ import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
