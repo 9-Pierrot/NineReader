@@ -78,14 +78,24 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <LinearLayout
+    <!-- Veil behind the status bar while the bars are shown: the system icons stay readable over the
+         pages, now that the top bar floats (height and colour set by the activity) -->
+    <View
+        android:id="@+id/status_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="top"
+        android:importantForAccessibility="no" />
+
+    <!-- Top bar: floating pill, the pages show blurred through it (margins set from the insets) -->
+    <com.ninereader.ui.components.FloatingNavBar
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:background="?attr/colorSurfaceContainer"
-        android:elevation="4dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="2dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -156,7 +166,7 @@
                 android:contentDescription="@string/close"
                 android:src="@drawable/ic_close" />
         </LinearLayout>
-    </LinearLayout>
+    </com.ninereader.ui.components.FloatingNavBar>
 
     <LinearLayout
         android:id="@+id/bottom_area"

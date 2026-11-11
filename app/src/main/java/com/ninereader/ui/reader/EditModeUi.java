@@ -618,7 +618,7 @@ class EditModeUi {
         int[] pagesLoc = new int[2];
         a.b.pages.getLocationOnScreen(pagesLoc);
         int limit = barLoc[1] - Math.round(8 * a.getResources().getDisplayMetrics().density);
-        int room = limit - pagesLoc[1] - a.b.topBar.getHeight();
+        int room = limit - pagesLoc[1] - a.b.topBar.getBottom();
         int bottom = loc[1] + Math.min(editor.getHeight(), Math.max(1, room / 2));
         if (bottom > limit) {
             int dy = Math.round((bottom - limit) / a.b.pages.getScale());

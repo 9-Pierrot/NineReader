@@ -173,7 +173,8 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
         setupBottomBar();
         setupSearchBar();
         b.pages.setListener(this);
-        b.topBar.addOnLayoutChangeListener((v, l, t, r, bt, ol, ot, or, ob) -> b.pages.setContentTopInset(bt - t));
+        // The first page starts under the floating top bar (bottom edge of the pill), not behind it.
+        b.topBar.addOnLayoutChangeListener((v, l, t, r, bt, ol, ot, or, ob) -> b.pages.setContentTopInset(bt));
         b.pages.setItemAnimator(null);
         b.pages.setHasFixedSize(false);
         b.panelScrim.setOnClickListener(v -> closePanel());
@@ -537,7 +538,11 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
         }
         if (presentation) bg = 0xFF000000;
         b.root.setBackgroundColor(bg);
+        readerBackground = bg;
+        b.statusScrim.setBackgroundColor((bg & 0x00FFFFFF) | 0xE6000000);
+        WindowCompat.getInsetsController(getWindow(), b.root).setAppearanceLightStatusBars(isLight(bg));
         // Around the pages in the blur of the floating bars
+        b.topBar.setBackdropColor(bg);
         b.bottomBar.setBackdropColor(bg);
         b.contextualBar.setBackdropColor(bg);
         if (adapter != null) {
@@ -611,6 +616,7 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
      * pages as pills, the pages showing blurred through them.
      */
     private void setupFloatingBars() {
+        b.topBar.setBlurTarget(b.blurTarget);
         b.bottomBar.setBlurTarget(b.blurTarget);
         b.contextualBar.setBlurTarget(b.blurTarget);
         b.contextualBar.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
@@ -633,7 +639,6 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
         ViewCompat.setOnApplyWindowInsetsListener(b.root, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-            b.topBar.setPadding(bars.left, bars.top, bars.right, 0);
             // Floating bars: 12 dp from the edges, above the system bars, at most 560 dp wide.
             float density = getResources().getDisplayMetrics().density;
             int margin = Math.round(12 * density);
@@ -641,6 +646,17 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
             int extra = Math.max(0, (available - Math.round(FLOATING_BAR_MAX_WIDTH_DP * density)) / 2);
             b.bottomArea.setPadding(bars.left + margin + extra, 0, bars.right + margin + extra,
                     Math.max(bars.bottom, ime.bottom) + margin);
+            ViewGroup.LayoutParams scrim = b.statusScrim.getLayoutParams();
+            if (scrim.height != bars.top) {
+                scrim.height = bars.top;
+                b.statusScrim.setLayoutParams(scrim);
+            }
+            android.widget.FrameLayout.LayoutParams top = (android.widget.FrameLayout.LayoutParams) b.topBar.getLayoutParams();
+            if (top.leftMargin != bars.left + margin + extra || top.topMargin != bars.top + margin
+                    || top.rightMargin != bars.right + margin + extra) {
+                top.setMargins(bars.left + margin + extra, bars.top + margin, bars.right + margin + extra, 0);
+                b.topBar.setLayoutParams(top);
+            }
             b.panelOverlay.setPadding(bars.left, bars.top, 0, bars.bottom);
             b.panelDocked.setPadding(bars.left, bars.top, 0, bars.bottom);
             return insets;
@@ -659,7 +675,14 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
         } else {
             ctl.hide(WindowInsetsCompat.Type.systemBars());
         }
-        ctl.setAppearanceLightStatusBars(!isSystemDark());
+        // Status icons over the reading background (veil), not over the app theme.
+        ctl.setAppearanceLightStatusBars(isLight(readerBackground));
+        b.statusScrim.animate().cancel();
+        if (animate) {
+            b.statusScrim.animate().alpha(visible ? 1f : 0f).setDuration(180).start();
+        } else {
+            b.statusScrim.setAlpha(visible ? 1f : 0f);
+        }
         animateBar(b.topBar, visible, true, animate);
         boolean modeActive = (annotationUi != null && annotationUi.isActive()) || (editUi != null && editUi.isActive());
         animateBar(b.bottomBar, visible && !modeActive, false, animate);
@@ -676,7 +699,7 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
                 bar.setAlpha(1f);
             }
         } else {
-            int h = Math.max(bar.getHeight(), 200);
+            int h = Math.max(top ? bar.getBottom() : b.root.getHeight() - topInRoot(bar), 200);
             if (animate) {
                 bar.animate().translationY(top ? -h : h).alpha(0f).setDuration(180)
                         .withEndAction(() -> bar.setVisibility(View.GONE)).start();
@@ -684,6 +707,22 @@ public class ReaderActivity extends ThemedActivity implements ReaderPanelFragmen
                 bar.setVisibility(View.GONE);
             }
         }
+    }
+
+    /** Colour around the pages (reading theme). */
+    private int readerBackground = 0xFFE6E6EA;
+
+    private static boolean isLight(int color) {
+        return androidx.core.graphics.ColorUtils.calculateLuminance(color | 0xFF000000) > 0.5;
+    }
+
+    /** Top of a view in the coordinates of the reader root. */
+    private int topInRoot(@NonNull View v) {
+        int y = 0;
+        for (View cur = v; cur != null && cur != b.root; cur = cur.getParent() instanceof View ? (View) cur.getParent() : null) {
+            y += cur.getTop();
+        }
+        return y;
     }
 
     private void applyWindowPrefs() {
