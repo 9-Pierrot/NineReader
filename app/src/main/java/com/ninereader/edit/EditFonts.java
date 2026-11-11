@@ -13,6 +13,7 @@ import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -67,6 +68,43 @@ public final class EditFonts {
         }
     }
 
+    /** Measures styled text on screen with the substitute fonts, in points (text size = font size). */
+    @NonNull
+    public static RichTextLayout.Measurer screenMeasurer(@NonNull Context context, @NonNull Family family, float size, float scaleX) {
+        android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        paint.setTextSize(size);
+        paint.setTextScaleX(scaleX);
+        return (s, style) -> {
+            paint.setTypeface(typeface(context, family, style.bold, style.italic));
+            return paint.measureText(s);
+        };
+    }
+
+    /**
+     * Horizontal scale giving the substitute font the width of the original one (e.g. Calibri is about 10%
+     * narrower than Liberation Sans), so that unchanged text breaks lines at the same places. 1 when the
+     * original width is unknown.
+     */
+    public static float fitScaleX(@NonNull Context context, @NonNull TextBlock b) {
+        if (b.fromOcr || b.originalWidth <= 0 || b.text.isEmpty()) return 1f;
+        RichTextLayout.Measurer m = screenMeasurer(context, b.family, b.fontSize, 1f);
+        int breaks = 0;
+        for (int i = 0; i < b.text.length(); i++) if (b.text.charAt(i) == '\n') breaks++;
+        float natural = 0;
+        for (StyleRun r : b.runs) {
+            String piece = b.text.substring(r.start, r.end).replace("\n", "");
+            if (!piece.isEmpty()) natural += m.width(piece, r);
+        }
+        // The text was joined with spaces where the original wrapped: they were not drawn.
+        int joins = Math.max(0, b.lineCount - 1 - breaks);
+        if (!b.runs.isEmpty()) natural -= joins * m.width(" ", b.runs.get(0));
+        if (natural <= 0) return 1f;
+        // 1% margin: rounding in the measures must not push the last word of a full line to the next one.
+        float scale = b.originalWidth / natural * 0.99f;
+        if (Math.abs(scale - 1f) < 0.02f) return 1f;
+        return Math.max(0.7f, Math.min(1.3f, scale));
+    }
+
     /** Loads (and embeds as a subset) the PDF font matching a style, cached per document. */
     @NonNull
     public static PDFont pdFont(@NonNull Context context, @NonNull PDDocument doc, @NonNull Map<String, PDFont> cache,
@@ -95,14 +133,21 @@ public final class EditFonts {
         return Family.SANS;
     }
 
+    /** Qt / Kanwrite style names: "Calibri-1-700" = italic flag, then CSS weight. */
+    private static final java.util.regex.Pattern QT_STYLE = java.util.regex.Pattern.compile("-([01])-(\\d{3})$");
+
     public static boolean guessBold(@Nullable String fontName) {
         if (fontName == null) return false;
+        java.util.regex.Matcher m = QT_STYLE.matcher(fontName);
+        if (m.find()) return Integer.parseInt(m.group(2)) >= 600;
         String n = fontName.toLowerCase(Locale.ROOT);
         return n.contains("bold") || n.contains("black") || n.contains("heavy") || n.contains("semibold") || n.contains("demi");
     }
 
     public static boolean guessItalic(@Nullable String fontName) {
         if (fontName == null) return false;
+        java.util.regex.Matcher m = QT_STYLE.matcher(fontName);
+        if (m.find()) return "1".equals(m.group(1));
         String n = fontName.toLowerCase(Locale.ROOT);
         return n.contains("italic") || n.contains("oblique");
     }

@@ -178,31 +178,62 @@ public class AnnotationPainter {
         if (selected) drawSelection(c, f, a);
     }
 
-    /** Edited text: hides the original block and draws the new text with its embedded font. */
+    /** Laid-out edited texts (layout in points), keyed by content and geometry. */
+    private final LruCache<String, java.util.List<com.ninereader.edit.RichTextLayout.Line>> textLayouts = new LruCache<>(64);
+
+    /**
+     * Edited text: hides the original block with the colour of the page under it (white, or a coloured
+     * panel) and draws the new text with its styles, highlights and the font that will be embedded, laid
+     * out exactly like in the saved PDF.
+     */
     private void drawTextEdit(Canvas c, PageFrame f, Annotation a, float unit) {
         if (a.originalBounds != null && map(f, a.originalBounds, r)) {
-            fill.setColor(0xFFFFFFFF);
+            fill.setColor(a.background == 0 ? 0xFFFFFFFF : a.background | 0xFF000000);
             r.inset(-1, -1);
             c.drawRect(r, fill);
         }
-        if (a.bounds == null || a.text == null || a.text.isEmpty() || !map(f, a.bounds, r)) return;
-        float size = Math.max(2f, a.fontSize * unit);
-        textPaint.setColor(a.color | 0xFF000000);
-        textPaint.setTextSize(size);
+        if (a.bounds == null || a.text == null || a.text.isEmpty() || context == null || !map(f, a.bounds, r)) return;
+        float sizePt = Math.max(2f, a.fontSize);
+        float scale = com.ninereader.edit.PdfTextEditor.scaleOf(a);
+        float pitchPt = com.ninereader.edit.PdfTextEditor.lineHeightOf(a);
+        float widthPt = Math.max(sizePt * 2, Math.abs(a.bounds[2] - a.bounds[0]));
         com.ninereader.edit.EditFonts.Family family = com.ninereader.edit.PdfTextEditor.familyOf(a);
-        textPaint.setTypeface(context == null ? null : com.ninereader.edit.EditFonts.typeface(context, family, a.bold, a.italic));
-        Paint.FontMetrics fm = textPaint.getFontMetrics();
-        float natural = fm.descent - fm.ascent;
-        float extra = com.ninereader.edit.PdfTextEditor.lineHeightOf(a) * unit - natural;
-        int w = Math.max(1, Math.round(r.width()));
-        StaticLayout layout = StaticLayout.Builder.obtain(a.text, 0, a.text.length(), textPaint, w)
-                .setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(extra, 1f).setIncludePad(false).build();
-        c.save();
-        // First baseline at the same place as in the saved PDF.
-        c.translate(r.left, r.top + com.ninereader.edit.PdfTextEditor.firstBaselineOffset(size) + fm.ascent);
-        layout.draw(c);
-        c.restore();
+        java.util.List<com.ninereader.edit.StyleRun> runs = com.ninereader.edit.PdfTextEditor.runsOf(a);
+        StringBuilder key = new StringBuilder(a.text).append('|').append(widthPt).append('|').append(sizePt).append('|')
+                .append(scale).append('|').append(family);
+        for (com.ninereader.edit.StyleRun run : runs) {
+            key.append('|').append(run.start).append(',').append(run.end).append(',').append(run.bold).append(run.italic)
+                    .append(',').append(run.color).append(',').append(run.highlight);
+        }
+        java.util.List<com.ninereader.edit.RichTextLayout.Line> lines = textLayouts.get(key.toString());
+        if (lines == null) {
+            lines = com.ninereader.edit.RichTextLayout.layout(a.text, runs, widthPt,
+                    com.ninereader.edit.EditFonts.screenMeasurer(context, family, sizePt, scale));
+            textLayouts.put(key.toString(), lines);
+        }
+        float firstPt = com.ninereader.edit.PdfTextEditor.firstBaselineOffset(sizePt);
+        float[] span = com.ninereader.edit.RichTextLayout.highlightSpan(sizePt, pitchPt);
+        textPaint.setTextSize(sizePt * unit);
+        textPaint.setTextScaleX(scale);
+        for (int i = 0; i < lines.size(); i++) {
+            float baseline = r.top + (firstPt + i * pitchPt) * unit;
+            for (com.ninereader.edit.RichTextLayout.Piece p : lines.get(i).pieces) {
+                if (p.style.highlight == 0 || p.width <= 0) continue;
+                fill.setColor(p.style.highlight | 0xFF000000);
+                c.drawRect(r.left + p.x * unit, baseline - span[1] * unit, r.left + (p.x + p.width) * unit, baseline - span[0] * unit, fill);
+            }
+        }
+        for (int i = 0; i < lines.size(); i++) {
+            float baseline = r.top + (firstPt + i * pitchPt) * unit;
+            for (com.ninereader.edit.RichTextLayout.Piece p : lines.get(i).pieces) {
+                if (p.text.trim().isEmpty()) continue;
+                textPaint.setTypeface(com.ninereader.edit.EditFonts.typeface(context, family, p.style.bold, p.style.italic));
+                textPaint.setColor(p.style.color | 0xFF000000);
+                c.drawText(p.text, r.left + p.x * unit, baseline, textPaint);
+            }
+        }
         textPaint.setTypeface(null);
+        textPaint.setTextScaleX(1f);
     }
 
     private void drawSelection(Canvas c, PageFrame f, Annotation a) {

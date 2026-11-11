@@ -99,6 +99,14 @@
                     android:src="@drawable/ic_palette" />
 
                 <ImageButton
+                    android:id="@+id/edit_highlight"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/tool_highlight"
+                    android:src="@drawable/ic_highlight" />
+
+                <ImageButton
                     android:id="@+id/edit_delete"
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="48dp"

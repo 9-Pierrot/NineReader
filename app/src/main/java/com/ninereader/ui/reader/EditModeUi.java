@@ -2,6 +2,14 @@ package com.ninereader.ui.reader;
 
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
+import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.MetricAffectingSpan;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
@@ -24,6 +32,8 @@ import com.ninereader.annotations.AnnotationStore;
 import com.ninereader.databinding.BarEditBinding;
 import com.ninereader.edit.EditFonts;
 import com.ninereader.edit.PdfTextEditor;
+import com.ninereader.edit.RichTextLayout;
+import com.ninereader.edit.StyleRun;
 import com.ninereader.edit.TextBlock;
 import com.ninereader.reader.PdfEngine;
 import com.ninereader.reader.view.PageAdapter;
@@ -31,17 +41,23 @@ import com.ninereader.reader.view.PageFrame;
 import com.ninereader.reader.view.SpreadView;
 import com.ninereader.reader.view.ZoomableRecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 /**
  * "Modifier" mode of the reader (MOD-01, MOD-02), like the "Edit PDF" mode of desktop editors: text
  * blocks of the page are outlined; tapping one opens an inline editor placed exactly over it, with
- * its font, size and colour; changes are visible immediately and written into the PDF on save
- * (original glyphs removed, new text embedded). Long press and drag moves a block; "Add text"
- * creates a new text box.
+ * its font, size, colours, bold/italic passages and highlights, fitted to the width of the original
+ * font; changes are visible immediately and written into the PDF on save (original glyphs removed,
+ * new text embedded). Bold, italic, colour and highlight apply to the selection, or to the whole
+ * block without selection. Long press and drag moves a block; "Add text" creates a new text box.
  */
 class EditModeUi {
+
+    private static final int DEFAULT_HIGHLIGHT = 0xFFFFFF00;
 
     /** What is being edited. */
     static final class Target {
@@ -55,13 +71,46 @@ class EditModeUi {
         float fontSize;
         float lineHeight;
         EditFonts.Family family = EditFonts.Family.SANS;
+        /** Default style (new text, characters without a run). */
         boolean bold;
         boolean italic;
         int color = 0xFF000000;
+        /** Horizontal scale of the substitute font (width of the original font). */
+        float scaleX = 1f;
+        /** Colour of the page under the block. */
+        int background = 0xFFFFFFFF;
+        /** Colour used by the highlight button. */
+        int highlight = DEFAULT_HIGHLIGHT;
         /** One-line text (title, label, new box): the box widens with the text instead of wrapping. */
         boolean singleLine;
         /** Right edge the box never shrinks below (original extent). */
         float minRight;
+    }
+
+    /** Bold / italic of a range, drawn with the family of the block being edited. */
+    private final class FontSpan extends MetricAffectingSpan {
+        final boolean bold;
+        final boolean italic;
+
+        FontSpan(boolean bold, boolean italic) {
+            this.bold = bold;
+            this.italic = italic;
+        }
+
+        private void apply(TextPaint p) {
+            Target t = target;
+            p.setTypeface(EditFonts.typeface(a, t == null ? EditFonts.Family.SANS : t.family, bold, italic));
+        }
+
+        @Override
+        public void updateMeasureState(@NonNull TextPaint p) {
+            apply(p);
+        }
+
+        @Override
+        public void updateDrawState(TextPaint p) {
+            apply(p);
+        }
     }
 
     private final ReaderActivity a;
@@ -133,17 +182,14 @@ class EditModeUi {
         bar.editDelete.setOnClickListener(v -> deleteCurrent());
         bar.editSmaller.setOnClickListener(v -> changeSize(-1));
         bar.editBigger.setOnClickListener(v -> changeSize(1));
-        bar.editBold.setOnClickListener(v -> {
-            if (target != null) {
-                target.bold = !target.bold;
-                positionEditor();
-            }
-        });
-        bar.editItalic.setOnClickListener(v -> {
-            if (target != null) {
-                target.italic = !target.italic;
-                positionEditor();
-            }
+        bar.editBold.setOnClickListener(v -> toggle(r -> r.bold, (r, on) -> r.bold = on, (t, on) -> t.bold = on));
+        bar.editItalic.setOnClickListener(v -> toggle(r -> r.italic, (r, on) -> r.italic = on, (t, on) -> t.italic = on));
+        bar.editHighlight.setOnClickListener(v -> {
+            Target t = target;
+            if (t == null) return;
+            int color = t.highlight;
+            toggle(r -> r.highlight != 0, (r, on) -> r.highlight = on ? color : 0, (tt, on) -> {
+            });
         });
         bar.editFont.setOnClickListener(this::chooseFamily);
         bar.editColor.setOnClickListener(v -> chooseColor());
@@ -253,7 +299,7 @@ class EditModeUi {
                 if (!isEdited(b) && b.contains(hit.pageX, hit.pageY, 2f)) found = b;
             }
             if (found == null) return;
-            moving = fromBlock(found, found.text);
+            moving = fromBlock(found);
             movingIsNew = true;
             movingBlockKey = found.key();
         }
@@ -315,7 +361,10 @@ class EditModeUi {
         t.bold = b.bold;
         t.italic = b.italic;
         t.color = b.color;
-        begin(t, b.text);
+        t.scaleX = EditFonts.fitScaleX(a, b);
+        t.background = b.background;
+        t.highlight = highlightOf(b.runs);
+        begin(t, b.text, b.runs);
     }
 
     private void beginFromAnnotation(@NonNull Annotation an) {
@@ -332,7 +381,11 @@ class EditModeUi {
         t.bold = an.bold;
         t.italic = an.italic;
         t.color = an.color;
-        begin(t, an.text == null ? "" : an.text);
+        t.scaleX = PdfTextEditor.scaleOf(an);
+        t.background = an.background == 0 ? 0xFFFFFFFF : an.background;
+        List<StyleRun> runs = PdfTextEditor.runsOf(an);
+        t.highlight = highlightOf(runs);
+        begin(t, an.text == null ? "" : an.text, runs);
     }
 
     private void beginNewBox(int page, float x, float y) {
@@ -346,12 +399,19 @@ class EditModeUi {
         t.fontSize = 12f;
         t.lineHeight = 12f * TextBlock.DEFAULT_LEADING;
         t.bounds = new float[]{x, y - 12f * 1.3f, t.minRight, y};
-        begin(t, "");
+        begin(t, "", new ArrayList<>());
     }
 
-    private void begin(@NonNull Target t, @NonNull String text) {
+    private static int highlightOf(@NonNull List<StyleRun> runs) {
+        for (StyleRun r : runs) if (r.highlight != 0) return r.highlight;
+        return DEFAULT_HIGHLIGHT;
+    }
+
+    private void begin(@NonNull Target t, @NonNull String text, @NonNull List<StyleRun> runs) {
         target = t;
-        editor.setText(text);
+        SpannableStringBuilder sb = new SpannableStringBuilder(text);
+        setSpans(sb, StyleRun.normalize(runs, text.length(), t.bold, t.italic, t.color));
+        editor.setText(sb);
         if (!positionEditor()) {
             target = null;
             return;
@@ -367,6 +427,83 @@ class EditModeUi {
         editor.postDelayed(this::ensureEditorVisible, 400);
     }
 
+    // ------------------------------------------------------------------ styled text <-> spans
+
+    /** Replaces the style spans of a text by the given runs. */
+    private void setSpans(@NonNull Spannable s, @NonNull List<StyleRun> runs) {
+        for (Object o : s.getSpans(0, s.length(), FontSpan.class)) s.removeSpan(o);
+        for (Object o : s.getSpans(0, s.length(), ForegroundColorSpan.class)) s.removeSpan(o);
+        for (Object o : s.getSpans(0, s.length(), BackgroundColorSpan.class)) s.removeSpan(o);
+        // Exclusive start, inclusive end: typed text continues the style of the characters before it.
+        int flags = Spannable.SPAN_EXCLUSIVE_INCLUSIVE;
+        for (StyleRun r : runs) {
+            if (r.end <= r.start || r.end > s.length()) continue;
+            s.setSpan(new FontSpan(r.bold, r.italic), r.start, r.end, flags);
+            s.setSpan(new ForegroundColorSpan(r.color | 0xFF000000), r.start, r.end, flags);
+            if (r.highlight != 0) s.setSpan(new BackgroundColorSpan(r.highlight | 0xFF000000), r.start, r.end, flags);
+        }
+    }
+
+    /** Styles of the characters of the editor. */
+    @NonNull
+    private List<StyleRun> readRuns() {
+        Target t = target;
+        Editable e = editor.getText();
+        int n = e.length();
+        boolean[] bold = new boolean[n];
+        boolean[] italic = new boolean[n];
+        int[] color = new int[n];
+        int[] highlight = new int[n];
+        for (int i = 0; i < n; i++) {
+            bold[i] = t != null && t.bold;
+            italic[i] = t != null && t.italic;
+            color[i] = t != null ? t.color : 0xFF000000;
+        }
+        for (FontSpan sp : e.getSpans(0, n, FontSpan.class)) {
+            for (int i = Math.max(0, e.getSpanStart(sp)); i < Math.min(n, e.getSpanEnd(sp)); i++) {
+                bold[i] = sp.bold;
+                italic[i] = sp.italic;
+            }
+        }
+        for (ForegroundColorSpan sp : e.getSpans(0, n, ForegroundColorSpan.class)) {
+            for (int i = Math.max(0, e.getSpanStart(sp)); i < Math.min(n, e.getSpanEnd(sp)); i++) color[i] = sp.getForegroundColor();
+        }
+        for (BackgroundColorSpan sp : e.getSpans(0, n, BackgroundColorSpan.class)) {
+            for (int i = Math.max(0, e.getSpanStart(sp)); i < Math.min(n, e.getSpanEnd(sp)); i++) highlight[i] = sp.getBackgroundColor();
+        }
+        List<StyleRun> runs = new ArrayList<>();
+        for (int i = 0; i < n; i++) runs.add(new StyleRun(i, i + 1, bold[i], italic[i], color[i], highlight[i]));
+        return StyleRun.normalize(runs, n, t != null && t.bold, t != null && t.italic, t != null ? t.color : 0xFF000000);
+    }
+
+    /** Range the format buttons act on: the selection, or the whole text. */
+    @NonNull
+    private int[] styleRange() {
+        int s = editor.getSelectionStart();
+        int e = editor.getSelectionEnd();
+        if (s > e) {
+            int x = s;
+            s = e;
+            e = x;
+        }
+        if (s >= 0 && e > s) return new int[]{s, e, 1};
+        return new int[]{0, editor.getText().length(), 0};
+    }
+
+    /** Toggles a style on the selection (or the whole block): on unless every character already has it. */
+    private void toggle(@NonNull Predicate<StyleRun> has, @NonNull BiConsumer<StyleRun, Boolean> set, @NonNull BiConsumer<Target, Boolean> whole) {
+        Target t = target;
+        if (t == null) return;
+        int[] range = styleRange();
+        List<StyleRun> runs = readRuns();
+        boolean on = !StyleRun.all(runs, range[0], range[1], has);
+        if (range[2] == 0) whole.accept(t, on);
+        setSpans(editor.getText(), StyleRun.restyle(runs, range[0], range[1], r -> set.accept(r, on)));
+        positionEditor();
+    }
+
+    // ------------------------------------------------------------------ layout of the inline editor
+
     /** One-line text: the right edge follows the typed text, up to the page margin (like Acrobat). */
     private void fitWidth(@NonNull Target t) {
         if (!t.singleLine) return;
@@ -375,10 +512,9 @@ class EditModeUi {
             t.singleLine = false; // the user broke the line: keep the current width and wrap from now on
             return;
         }
-        Paint p = new Paint();
-        p.setTypeface(EditFonts.typeface(a, t.family, t.bold, t.italic));
-        p.setTextSize(t.fontSize);
-        float needed = t.bounds[0] + p.measureText(text) + t.fontSize * 0.3f;
+        float textWidth = RichTextLayout.width(text, readRuns(), 0, text.length(),
+                EditFonts.screenMeasurer(a, t.family, t.fontSize, t.scaleX));
+        float needed = t.bounds[0] + textWidth + t.fontSize * 0.3f;
         PdfEngine e = a.vm.engine();
         float pageW = e != null && e.isMeasured(t.page) ? e.pageWidth(t.page) : 595f;
         float max = Math.max(t.minRight, pageW - 18f);
@@ -422,7 +558,7 @@ class EditModeUi {
         return true;
     }
 
-    /** Live typography of the editor (size, family, weight, style, colour). */
+    /** Live typography of the editor (size, family, width, background); per-character styles are spans. */
     private void applyStyleToEditor() {
         Target t = target;
         if (t == null) return;
@@ -431,10 +567,17 @@ class EditModeUi {
         float size = Math.max(6f, t.fontSize * unit);
         editor.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
         editor.setTypeface(EditFonts.typeface(a, t.family, t.bold, t.italic));
+        editor.setTextScaleX(t.scaleX);
         editor.setTextColor(t.color | 0xFF000000);
         Paint.FontMetrics fm = editor.getPaint().getFontMetrics();
         float natural = fm.descent - fm.ascent;
         editor.setLineSpacing(Math.max(t.lineHeight, t.fontSize) * unit - natural, 1f);
+        // Same colour as the page under the block, so that the original text is hidden but not the panel.
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(t.background | 0xFF000000);
+        bg.setStroke(Math.round(1.5f * a.getResources().getDisplayMetrics().density), 0xFF3D7BE0);
+        editor.setBackground(bg);
+        editor.setPadding(0, 0, 0, 0);
         updateFormatUi();
     }
 
@@ -442,8 +585,11 @@ class EditModeUi {
         Target t = target;
         if (t == null) return;
         bar.editSize.setText(String.format(Locale.getDefault(), t.fontSize < 10 ? "%.1f" : "%.0f", t.fontSize));
-        bar.editBold.setChecked(t.bold);
-        bar.editItalic.setChecked(t.italic);
+        int[] range = styleRange();
+        List<StyleRun> runs = readRuns();
+        boolean empty = range[1] <= range[0];
+        bar.editBold.setChecked(empty ? t.bold : StyleRun.all(runs, range[0], range[1], r -> r.bold));
+        bar.editItalic.setChecked(empty ? t.italic : StyleRun.all(runs, range[0], range[1], r -> r.italic));
         int label;
         switch (t.family) {
             case SERIF:
@@ -500,8 +646,11 @@ class EditModeUi {
         menu.getMenu().add(0, 1, 1, R.string.font_serif);
         menu.getMenu().add(0, 2, 2, R.string.font_mono);
         menu.setOnMenuItemClickListener(item -> {
-            if (target != null) {
-                target.family = EditFonts.Family.values()[item.getItemId()];
+            Target t = target;
+            if (t != null) {
+                t.family = EditFonts.Family.values()[item.getItemId()];
+                // The spans resolve their typeface with the family: lay the text out again.
+                setSpans(editor.getText(), readRuns());
                 positionEditor();
             }
             return true;
@@ -513,13 +662,16 @@ class EditModeUi {
         if (target == null) return;
         int[] colors = {0xFF000000, 0xFF424242, 0xFF1565C0, 0xFFC62828, 0xFF2E7D32, 0xFF6A1B9A, 0xFFEF6C00};
         String[] names = a.getResources().getStringArray(R.array.text_color_names);
+        int[] range = styleRange();
         new MaterialAlertDialogBuilder(a)
                 .setTitle(R.string.text_color)
                 .setItems(names, (d, which) -> {
-                    if (target != null) {
-                        target.color = colors[which];
-                        positionEditor();
-                    }
+                    Target t = target;
+                    if (t == null) return;
+                    int color = colors[which];
+                    if (range[2] == 0) t.color = color;
+                    setSpans(editor.getText(), StyleRun.restyle(readRuns(), range[0], range[1], r -> r.color = color));
+                    positionEditor();
                 })
                 .show();
     }
@@ -534,13 +686,17 @@ class EditModeUi {
                 if (cur.originalBounds != null) {
                     Annotation e = cur.copy();
                     e.text = "";
+                    e.runs = null;
                     store.update(e);
                 } else {
                     store.remove(cur.id);
                 }
             }
         } else if (t.block != null) {
-            store.add(fromBlock(t.block, ""));
+            Annotation an = fromBlock(t.block);
+            an.text = "";
+            an.runs = null;
+            store.add(an);
         }
         target = null;
         hideEditor();
@@ -550,15 +706,16 @@ class EditModeUi {
     void commit() {
         Target t = target;
         if (t == null) return;
-        target = null;
         String text = editor.getText().toString();
+        List<StyleRun> runs = readRuns();
+        target = null;
         hideEditor();
         AnnotationStore store = a.vm.editor().store();
         if (t.annotationId != null) {
             Annotation cur = store.find(t.annotationId);
             if (cur != null) {
                 Annotation e = cur.copy();
-                applyTarget(e, t, text);
+                applyTarget(e, t, text, runs);
                 if (!sameContent(cur, e)) store.update(e);
             }
         } else if (t.isNew) {
@@ -566,16 +723,16 @@ class EditModeUi {
                 Annotation an = new Annotation();
                 an.type = Annotation.Type.TEXT_EDIT;
                 an.page = t.page;
-                applyTarget(an, t, text);
+                applyTarget(an, t, text, runs);
                 store.add(an);
             }
         } else if (t.block != null) {
             TextBlock b = t.block;
-            boolean unchanged = text.equals(b.text) && t.fontSize == b.fontSize && t.family == b.family && t.bold == b.bold
-                    && t.italic == b.italic && t.color == b.color;
+            boolean unchanged = text.equals(b.text) && t.fontSize == b.fontSize && t.family == b.family
+                    && StyleRun.sameRuns(runs, b.runs);
             if (!unchanged) {
-                Annotation an = fromBlock(b, text);
-                applyTarget(an, t, text);
+                Annotation an = fromBlock(b);
+                applyTarget(an, t, text, runs);
                 store.add(an);
             }
         }
@@ -592,14 +749,15 @@ class EditModeUi {
     }
 
     @NonNull
-    private static Annotation fromBlock(@NonNull TextBlock b, @NonNull String text) {
+    private Annotation fromBlock(@NonNull TextBlock b) {
         Annotation an = new Annotation();
         an.type = Annotation.Type.TEXT_EDIT;
         an.page = b.page;
         an.originalBounds = b.bounds.clone();
         an.bounds = b.bounds.clone();
         an.originalText = b.text;
-        an.text = text;
+        an.text = b.text;
+        an.runs = StyleRun.copyOf(b.runs);
         an.fontSize = b.fontSize;
         an.lineHeight = b.lineHeight;
         an.fontFamily = b.family.name();
@@ -607,11 +765,14 @@ class EditModeUi {
         an.italic = b.italic;
         an.color = b.color;
         an.fromOcr = b.fromOcr;
+        an.textScaleX = EditFonts.fitScaleX(a, b);
+        an.background = b.background;
         return an;
     }
 
-    private static void applyTarget(@NonNull Annotation an, @NonNull Target t, @NonNull String text) {
+    private static void applyTarget(@NonNull Annotation an, @NonNull Target t, @NonNull String text, @NonNull List<StyleRun> runs) {
         an.text = text;
+        an.runs = runs;
         an.fontSize = t.fontSize;
         an.lineHeight = t.lineHeight;
         an.fontFamily = t.family.name();
@@ -619,11 +780,14 @@ class EditModeUi {
         an.italic = t.italic;
         an.color = t.color;
         an.bounds = t.bounds.clone();
+        an.textScaleX = t.scaleX;
+        an.background = t.background;
     }
 
     private static boolean sameContent(@NonNull Annotation x, @NonNull Annotation y) {
         return java.util.Objects.equals(x.text, y.text) && x.fontSize == y.fontSize && java.util.Objects.equals(x.fontFamily, y.fontFamily)
-                && x.bold == y.bold && x.italic == y.italic && x.color == y.color;
+                && x.bold == y.bold && x.italic == y.italic && x.color == y.color
+                && StyleRun.sameRuns(PdfTextEditor.runsOf(x), PdfTextEditor.runsOf(y));
     }
 
     // ------------------------------------------------------------------ lookups

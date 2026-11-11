@@ -229,6 +229,186 @@ public class PdfTextEditorTest {
         }
     }
 
+    /**
+     * Page built like a Qt / Kanwrite export: every text has the same size, the title is told apart by
+     * weight and colour, a paragraph starts with a bold lead-in, part of it is highlighted by a yellow
+     * rectangle drawn under the text, and list items have vector bullets.
+     */
+    private PDDocument styledSample() throws IOException {
+        PDDocument doc = new PDDocument();
+        PDPage page = new PDPage(PDRectangle.A4);
+        doc.addPage(page);
+        try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+            // Highlight under "pour une duree limitee" (second part of the first item line).
+            float start = 100 + PDType1Font.HELVETICA_BOLD.getStringWidth("A la rentree") / 1000f * 11
+                    + PDType1Font.HELVETICA.getStringWidth(" : commencer au CFA ") / 1000f * 11;
+            float width = PDType1Font.HELVETICA.getStringWidth("pour une duree limitee") / 1000f * 11;
+            cs.setNonStrokingColor(1f, 1f, 0f);
+            cs.addRect(start - 0.5f, 697, width + 1, 13.7f);
+            cs.fill();
+            // Vector bullets.
+            cs.setNonStrokingColor(0f, 0f, 0f);
+            cs.addRect(93.6f, 702f, 4.3f, 4.3f);
+            cs.fill();
+            cs.addRect(93.6f, 670f, 4.3f, 4.3f);
+            cs.fill();
+            cs.beginText();
+            cs.setNonStrokingColor(0x2F / 255f, 0x54 / 255f, 0x96 / 255f);
+            cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
+            cs.newLineAtOffset(70, 730);
+            cs.showText("Le calendrier");
+            cs.endText();
+            cs.beginText();
+            cs.setNonStrokingColor(0f, 0f, 0f);
+            cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
+            cs.newLineAtOffset(100, 700);
+            cs.showText("A la rentree");
+            cs.setFont(PDType1Font.HELVETICA, 11);
+            cs.showText(" : commencer au CFA ");
+            cs.showText("pour une duree limitee");
+            cs.endText();
+            cs.beginText();
+            cs.setFont(PDType1Font.HELVETICA, 11);
+            cs.newLineAtOffset(100, 668);
+            cs.showText("Second point de la liste.");
+            cs.endText();
+        }
+        return doc;
+    }
+
+    private static int countFills(PDDocument doc, int rgb) throws IOException {
+        int n = 0;
+        for (TextBlockExtractor.Fill f : TextBlockExtractor.fills(doc, 0).fills) if ((f.color & 0xFFFFFF) == rgb) n++;
+        return n;
+    }
+
+    @Test
+    public void detectsTitlesStylesHighlightsAndListItems() throws IOException {
+        try (PDDocument doc = styledSample()) {
+            List<TextBlock> blocks = TextBlockExtractor.fromPdf(doc, 0);
+            assertEquals(3, blocks.size());
+            TextBlock title = blocks.get(0);
+            assertEquals("Le calendrier", title.text);
+            assertTrue(title.bold);
+            assertEquals(0xFF2F5496, title.color);
+            TextBlock item = blocks.get(1);
+            assertEquals("A la rentree : commencer au CFA pour une duree limitee", item.text);
+            StyleRun lead = item.runs.get(0);
+            assertTrue(lead.bold);
+            assertEquals("A la rentree", item.text.substring(lead.start, lead.end));
+            StyleRun hl = null;
+            for (StyleRun r : item.runs) if (r.highlight != 0) hl = r;
+            assertNotNull("highlight detected", hl);
+            assertEquals(0xFFFFFF00, hl.highlight);
+            assertEquals("pour une duree limitee", item.text.substring(hl.start, hl.end).trim());
+            assertEquals(0xFFFFFFFF, item.background);
+            assertEquals("Second point de la liste.", blocks.get(2).text);
+        }
+    }
+
+    @Test
+    public void editKeepsStylesAndMovesTheHighlightWithTheText() throws IOException {
+        PDDocument doc = styledSample();
+        TextBlock item = TextBlockExtractor.fromPdf(doc, 0).get(1);
+        Annotation edit = new Annotation();
+        edit.type = Annotation.Type.TEXT_EDIT;
+        edit.page = 0;
+        edit.originalBounds = item.bounds.clone();
+        edit.bounds = item.bounds.clone();
+        edit.bounds[2] = 520;
+        edit.originalText = item.text;
+        // Words inserted before the highlight: it must follow its words, not stay at the old place.
+        String inserted = " sans employeur";
+        int at = item.text.indexOf(" pour");
+        edit.text = item.text.substring(0, at) + inserted + item.text.substring(at);
+        edit.runs = new java.util.ArrayList<>();
+        for (StyleRun r : item.runs) {
+            StyleRun c = r.copy();
+            if (c.start >= at) c.start += inserted.length();
+            if (c.end > at) c.end += inserted.length();
+            edit.runs.add(c);
+        }
+        edit.fontSize = item.fontSize;
+        edit.lineHeight = item.lineHeight;
+        edit.fontFamily = item.family.name();
+        edit.bold = item.bold;
+        edit.color = item.color;
+        assertEquals(1, countFills(doc, 0xFFFF00));
+        PdfTextEditor.apply(context, doc, Collections.singletonList(edit), Collections.emptySet());
+        PDDocument saved = roundTrip(doc);
+        try {
+            // The original rectangle is gone, a new one is drawn under the moved words.
+            List<TextBlockExtractor.Fill> yellow = new java.util.ArrayList<>();
+            for (TextBlockExtractor.Fill f : TextBlockExtractor.fills(saved, 0).fills) if ((f.color & 0xFFFFFF) == 0xFFFF00) yellow.add(f);
+            assertEquals(1, yellow.size());
+            assertTrue("highlight moved right with its words: " + yellow.get(0).box[0], yellow.get(0).box[0] > 260);
+            // Bullets kept.
+            assertEquals(2, countFills(saved, 0x000000));
+            TextBlock again = null;
+            for (TextBlock b : TextBlockExtractor.fromPdf(saved, 0)) if (b.text.contains("employeur")) again = b;
+            assertNotNull(again);
+            assertEquals(edit.text, again.text);
+            assertTrue("bold lead-in kept", again.runs.get(0).bold);
+            assertEquals("A la rentree", again.text.substring(again.runs.get(0).start, again.runs.get(0).end));
+            StyleRun hl = null;
+            for (StyleRun r : again.runs) if (r.highlight != 0) hl = r;
+            assertNotNull(hl);
+            assertEquals("pour une duree limitee", again.text.substring(hl.start, hl.end).trim());
+            // Title untouched, still blue and bold.
+            TextBlock title = TextBlockExtractor.fromPdf(saved, 0).get(0);
+            assertEquals(0xFF2F5496, title.color);
+            assertTrue(title.bold);
+        } finally {
+            saved.close();
+        }
+    }
+
+    @Test
+    public void horizontalScaleKeepsTheOriginalWidth() throws IOException {
+        PDDocument doc = sample();
+        PDDocument copy = sample();
+        TextBlock title = TextBlockExtractor.fromPdf(doc, 0).get(0);
+        Annotation edit = new Annotation();
+        edit.type = Annotation.Type.TEXT_EDIT;
+        edit.page = 0;
+        edit.originalBounds = title.bounds.clone();
+        edit.bounds = title.bounds.clone();
+        edit.text = title.text;
+        edit.fontSize = title.fontSize;
+        edit.fontFamily = title.family.name();
+        edit.bold = true;
+        edit.textScaleX = 1f;
+        PdfTextEditor.apply(context, doc, Collections.singletonList(edit), Collections.emptySet());
+        Annotation narrow = edit.copy();
+        narrow.textScaleX = 0.8f;
+        PdfTextEditor.apply(context, copy, Collections.singletonList(narrow), Collections.emptySet());
+        PDDocument a = roundTrip(doc);
+        PDDocument b = roundTrip(copy);
+        try {
+            float wa = TextBlockExtractor.fromPdf(a, 0).get(0).originalWidth;
+            float wb = TextBlockExtractor.fromPdf(b, 0).get(0).originalWidth;
+            assertEquals(0.8f, wb / wa, 0.03f);
+        } finally {
+            a.close();
+            b.close();
+        }
+    }
+
+    @Test
+    public void recognisesLigaturesWithoutUnicodeFromTheirWidth() {
+        // Widths (em) of Calibri regular, and of its "ti" / "tt" ligatures exported without ToUnicode.
+        java.util.Map<Character, Float> w = new java.util.HashMap<>();
+        w.put('t', 0.335f);
+        w.put('i', 0.229f);
+        w.put('f', 0.305f);
+        w.put('j', 0.239f);
+        assertEquals("ti", TextBlockExtractor.GlyphCollector.recognise(w, 0.557f));
+        assertEquals("tt", TextBlockExtractor.GlyphCollector.recognise(w, 0.634f));
+        assertEquals(null, TextBlockExtractor.GlyphCollector.recognise(w, 0.9f));
+        assertEquals("ffi", TextBlockExtractor.decomposeLigatures("ﬃ"));
+        assertEquals("chiffres", TextBlockExtractor.decomposeLigatures("chiﬀres"));
+    }
+
     /** Baseline of the first glyph matching a string. */
     private static float glyphY(PDDocument doc, String unicode) throws IOException {
         for (Glyph g : TextBlockExtractor.glyphs(doc, 0)) {

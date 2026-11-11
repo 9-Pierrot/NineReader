@@ -75,6 +75,16 @@ public class Annotation {
     public float lineHeight;
     /** TEXT_EDIT: the original text comes from OCR (scanned page). */
     public boolean fromOcr;
+    /** TEXT_EDIT: styles of character ranges of {@link #text} (bold, italic, colour, highlight); empty = uniform. */
+    @Nullable
+    public List<com.ninereader.edit.StyleRun> runs;
+    /**
+     * TEXT_EDIT: horizontal scale of the substitute font so that the text keeps the width of the original
+     * font, hence the same line breaks (0 = 1).
+     */
+    public float textScaleX;
+    /** TEXT_EDIT: colour of the page under the original text (ARGB, 0 = white), used to hide it on screen. */
+    public int background;
 
     @NonNull
     public Annotation copy() {
@@ -99,6 +109,9 @@ public class Annotation {
         a.italic = italic;
         a.lineHeight = lineHeight;
         a.fromOcr = fromOcr;
+        a.runs = runs == null ? null : com.ninereader.edit.StyleRun.copyOf(runs);
+        a.textScaleX = textScaleX;
+        a.background = background;
         return a;
     }
 
