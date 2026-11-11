@@ -86,6 +86,20 @@ public final class ThemeManager {
         if (CRYSTAL.equals(theme)) t.applyStyle(R.style.ThemeOverlay_NineReader_Glass, true);
     }
 
+    /** Whether the app will be dark with a theme: forced by the theme, or following the system. */
+    public static boolean willBeDark(@NonNull Context context, @NonNull String theme) {
+        switch (nightMode(theme)) {
+            case AppCompatDelegate.MODE_NIGHT_YES:
+                return true;
+            case AppCompatDelegate.MODE_NIGHT_NO:
+                return false;
+            default:
+                // Mode of the phone itself (the app configuration may be forced by the previous theme).
+                return (Resources.getSystem().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                        == Configuration.UI_MODE_NIGHT_YES;
+        }
+    }
+
     /** Whether the theme of an activity is dark (status bar icons must then be light). */
     public static boolean isDark(@NonNull Context context) {
         return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)

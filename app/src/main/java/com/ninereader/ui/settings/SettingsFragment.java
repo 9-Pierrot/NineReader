@@ -76,13 +76,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
         if (theme != null) {
             theme.setOnPreferenceChangeListener((p, value) -> {
-                String old = new Prefs(requireContext()).appTheme();
                 String chosen = String.valueOf(value);
                 if (dynamic != null) updateDynamicColors(dynamic, chosen);
-                if (com.ninereader.ui.theme.ThemeManager.nightMode(old) != com.ninereader.ui.theme.ThemeManager.nightMode(chosen)) {
-                    // A new light / dark mode recreates every activity by itself.
-                    Prefs.applyAppTheme(chosen);
-                } else {
+                boolean darkNow = com.ninereader.ui.theme.ThemeManager.isDark(requireContext());
+                Prefs.applyAppTheme(chosen);
+                // The system recreates the activities only when the effective light / dark mode changes
+                // (e.g. not from System to AMOLED on a phone already in dark mode): otherwise do it here.
+                if (com.ninereader.ui.theme.ThemeManager.willBeDark(requireContext(), chosen) == darkNow) {
                     recreateAfterChange();
                 }
                 return true;
