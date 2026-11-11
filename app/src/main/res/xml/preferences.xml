@@ -22,7 +22,7 @@
             app:title="@string/pref_reading_mode"
             app:useSimpleSummaryProvider="true" />
         <ListPreference
-            app:defaultValue="auto"
+            app:defaultValue="light"
             app:entries="@array/reader_theme_labels"
             app:entryValues="@array/reader_theme_values"
             app:key="reader_theme"

@@ -56,7 +56,7 @@ public final class Prefs {
     }
 
     public String readerTheme() {
-        return sp.getString(KEY_READER_THEME, "auto");
+        return sp.getString(KEY_READER_THEME, "light");
     }
 
     public void setReaderTheme(String value) {

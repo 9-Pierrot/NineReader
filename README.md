@@ -93,11 +93,11 @@ Les tests instrumentés (`app/src/androidTest`) se lancent sur un appareil : `./
 ## Publier une version
 
 ```bash
-git tag v0.4.0
-git push origin v0.4.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-Le workflow `release.yml` déduit la version du tag (`versionName` 0.4.0, `versionCode` 400) et publie l'APK signé. La clé de signature n'est jamais dans le dépôt : elle est fournie par les secrets du dépôt (*Settings > Secrets and variables > Actions*) `NR_KEYSTORE_BASE64` (fichier `.jks` encodé en base 64), `NR_KEYSTORE_PASSWORD`, `NR_KEY_ALIAS` et `NR_KEY_PASSWORD`. En local, `assembleRelease` produit un APK non signé, sauf si les variables d'environnement `NR_KEYSTORE_FILE`, `NR_KEYSTORE_PASSWORD`, `NR_KEY_ALIAS` et `NR_KEY_PASSWORD` sont définies.
+Le workflow `release.yml` déduit la version du tag (`versionName` 1.0.0, `versionCode` 10000) et publie l'APK signé. La clé de signature n'est jamais dans le dépôt : elle est fournie par les secrets du dépôt (*Settings > Secrets and variables > Actions*) `NR_KEYSTORE_BASE64` (fichier `.jks` encodé en base 64), `NR_KEYSTORE_PASSWORD`, `NR_KEY_ALIAS` et `NR_KEY_PASSWORD`. En local, `assembleRelease` produit un APK non signé, sauf si les variables d'environnement `NR_KEYSTORE_FILE`, `NR_KEYSTORE_PASSWORD`, `NR_KEY_ALIAS` et `NR_KEY_PASSWORD` sont définies.
 
 ## Conventions
 

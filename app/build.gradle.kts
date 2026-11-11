@@ -4,9 +4,9 @@ plugins {
     jacoco
 }
 
-// Version: from the release tag in CI (-PversionName=1.2.3), 0.3.0 otherwise.
+// Version: from the release tag in CI (-PversionName=1.2.3), 1.0.0 otherwise.
 // versionCode = major * 10000 + minor * 100 + patch, so that every release is an update of the previous one.
-val appVersionName = (findProperty("versionName") as String?)?.removePrefix("v") ?: "0.3.0"
+val appVersionName = (findProperty("versionName") as String?)?.removePrefix("v") ?: "1.0.0"
 val appVersionCode = appVersionName.split("-")[0].split(".").map { it.toIntOrNull() ?: 0 }
     .let { (it.getOrElse(0) { 0 } * 10000) + (it.getOrElse(1) { 0 } * 100) + it.getOrElse(2) { 0 } }
 
