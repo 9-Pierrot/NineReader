@@ -2,6 +2,7 @@ package com.ninereader.ui;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.Espresso.pressBack;
+import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.action.ViewActions.replaceText;
@@ -70,14 +71,7 @@ public class ReaderFlowTest {
     @Test
     public void openReadSearchAnnotateAndSave() throws IOException {
         Uri uri = TestPdfs.text(context, 12, "flow.pdf");
-        // Independent of a previous run (app kept installed): first page, default zoom and reading mode.
-        com.ninereader.data.entity.DocumentEntity previous = com.ninereader.data.AppDatabase.get(context).documents().byUri(uri.toString());
-        if (previous != null) {
-            previous.lastPage = 0;
-            previous.lastZoom = 1f;
-            previous.readingMode = null;
-            com.ninereader.data.AppDatabase.get(context).documents().update(previous);
-        }
+        TestPdfs.resetState(context, uri);
         Intent intent = new Intent(context, ReaderActivity.class).setData(uri);
         try (ActivityScenario<ReaderActivity> scenario = ActivityScenario.launch(intent)) {
             AtomicReference<ReaderViewModel> vmRef = new AtomicReference<>();
@@ -132,6 +126,76 @@ public class ReaderFlowTest {
             onView(withId(R.id.btn_mode)).perform(click());
             SystemClock.sleep(500);
             waitUntil("relaid out on page 5", 5_000, () -> onMain(vm::page) == 4);
+        }
+    }
+
+    private static void askSave(ReaderActivity a, boolean thenFinish) {
+        try {
+            java.lang.reflect.Method m = ReaderActivity.class.getDeclaredMethod("askSave", boolean.class);
+            m.setAccessible(true);
+            m.invoke(a, thenFinish);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static void discard(ReaderActivity a, boolean thenFinish) {
+        try {
+            java.lang.reflect.Method m = ReaderActivity.class.getDeclaredMethod("discardChanges", boolean.class);
+            m.setAccessible(true);
+            m.invoke(a, thenFinish);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /** "No" in the save dialog drops the pending changes and their draft (undo from the snackbar in the reader). */
+    @Test
+    public void saveDialogNoDiscardsTheChanges() throws IOException {
+        Uri uri = TestPdfs.text(context, 3, "discard.pdf");
+        TestPdfs.resetState(context, uri);
+        Intent intent = new Intent(context, ReaderActivity.class).setData(uri);
+        try (ActivityScenario<ReaderActivity> scenario = ActivityScenario.launch(intent)) {
+            AtomicReference<ReaderViewModel> vmRef = new AtomicReference<>();
+            scenario.onActivity(a -> vmRef.set(new ViewModelProvider(a).get(ReaderViewModel.class)));
+            ReaderViewModel vm = vmRef.get();
+            waitUntil("document ready", 10_000, () -> onMain(() -> vm.status().getValue() == ReaderViewModel.Status.READY));
+            Annotation h = new Annotation();
+            h.type = Annotation.Type.HIGHLIGHT;
+            h.page = 0;
+            h.rects.add(new float[]{72, 560, 300, 575});
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> vm.editor().store().add(h));
+            waitUntil("draft written", 5_000, () -> com.ninereader.data.AppDatabase.get(context).drafts().get(uri.toString()) != null);
+
+            // The dialog offers Yes (replace, copy) and No; "Later" only when leaving.
+            scenario.onActivity(a -> askSave(a, false));
+            onView(withText(R.string.save_in_file)).inRoot(isDialog()).check(matches(isDisplayed()));
+            onView(withText(R.string.save_in_copy)).inRoot(isDialog()).check(matches(isDisplayed()));
+            onView(withText(R.string.discard_changes)).inRoot(isDialog()).check(matches(isDisplayed()));
+            pressBack();
+            scenario.onActivity(a -> askSave(a, true));
+            onView(withText(R.string.keep_draft)).inRoot(isDialog()).check(matches(isDisplayed()));
+            pressBack();
+
+            // In the reader: "No" discards, the snackbar brings the changes back.
+            scenario.onActivity(a -> discard(a, false));
+            waitUntil("changes discarded", 5_000, () -> onMain(() -> !vm.editor().hasPendingChanges()));
+            // Clicked directly: the device keeps its animations, which make Espresso clicks on a
+            // snackbar that is still sliding in unreliable.
+            AtomicReference<ReaderActivity> act = new AtomicReference<>();
+            scenario.onActivity(act::set);
+            waitUntil("undo offered", 5_000, () -> onMain(() -> {
+                android.view.View v = act.get().findViewById(com.google.android.material.R.id.snackbar_action);
+                return v != null && v.isShown() && context.getString(R.string.undo).equalsIgnoreCase(((TextView) v).getText().toString());
+            }));
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                    act.get().findViewById(com.google.android.material.R.id.snackbar_action).performClick());
+            waitUntil("changes restored", 5_000, () -> onMain(() -> vm.editor().hasPendingChanges()));
+
+            // When leaving: "No" discards, deletes the draft and closes the document.
+            scenario.onActivity(a -> discard(a, true));
+            waitUntil("draft deleted", 5_000, () -> com.ninereader.data.AppDatabase.get(context).drafts().get(uri.toString()) == null);
+            waitUntil("reader closed", 5_000, () -> scenario.getState() == androidx.lifecycle.Lifecycle.State.DESTROYED);
         }
     }
 

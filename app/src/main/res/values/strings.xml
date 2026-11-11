@@ -216,10 +216,12 @@
     <string name="redact_hint">Tracez des zones : leur contenu sera réellement supprimé à l\'enregistrement (la page devient une image).</string>
     <string name="sign_hint">Touchez un champ pour le remplir, ou utilisez Signature / Tampons / Texte.</string>
     <string name="save_changes_title">Enregistrer les modifications ?</string>
-    <string name="save_changes_message">Les modifications du texte, annotations et valeurs de formulaire seront écrites dans le PDF (format standard). Vous pouvez remplacer le fichier ou enregistrer une copie.</string>
-    <string name="save_in_file">Remplacer le fichier</string>
+    <string name="save_in_file">Oui, remplacer le fichier</string>
+    <string name="save_in_copy">Oui, enregistrer une copie</string>
+    <string name="discard_changes">Non, abandonner les modifications</string>
+    <string name="changes_discarded">Modifications abandonnées</string>
     <string name="save_copy">Enregistrer une copie</string>
-    <string name="keep_draft">Plus tard</string>
+    <string name="keep_draft">Plus tard (garder le brouillon)</string>
     <string name="copy_saved">Copie enregistrée</string>
     <string name="save_partial">%d élément(s) n\'ont pas pu être enregistrés</string>
     <string name="save_failed">Échec de l\'enregistrement</string>

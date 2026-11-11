@@ -213,10 +213,12 @@
     <string name="redact_hint">Draw areas: their content will really be removed when saving (the page becomes an image).</string>
     <string name="sign_hint">Tap a field to fill it, or use Signature / Stamps / Text.</string>
     <string name="save_changes_title">Save changes?</string>
-    <string name="save_changes_message">Text edits, annotations and form values will be written into the PDF (standard format). You can replace the file or save a copy.</string>
-    <string name="save_in_file">Replace file</string>
+    <string name="save_in_file">Yes, replace the file</string>
+    <string name="save_in_copy">Yes, save a copy</string>
+    <string name="discard_changes">No, discard the changes</string>
+    <string name="changes_discarded">Changes discarded</string>
     <string name="save_copy">Save a copy</string>
-    <string name="keep_draft">Later</string>
+    <string name="keep_draft">Later (keep the draft)</string>
     <string name="copy_saved">Copy saved</string>
     <string name="save_partial">%d item(s) could not be saved</string>
     <string name="save_failed">Saving failed</string>

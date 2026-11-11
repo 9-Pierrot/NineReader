@@ -47,6 +47,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.ninereader.NineReaderApp;
 import com.ninereader.R;
 import com.ninereader.annotations.Annotation;
+import com.ninereader.annotations.AnnotationStore;
 import com.ninereader.annotations.AnnotationExporter;
 import com.ninereader.annotations.FormField;
 import com.ninereader.data.ReadingStats;
@@ -1497,18 +1498,56 @@ public class ReaderActivity extends AppCompatActivity implements ReaderPanelFrag
             if (thenFinish) finish();
             return;
         }
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
+        // Yes (replace / copy), No (discard), and when leaving: later, keeping the draft.
+        List<CharSequence> choices = new ArrayList<>();
+        choices.add(getString(R.string.save_in_file));
+        choices.add(getString(R.string.save_in_copy));
+        choices.add(getString(R.string.discard_changes));
+        if (thenFinish) choices.add(getString(R.string.keep_draft));
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.save_changes_title)
-                .setMessage(R.string.save_changes_message)
-                .setPositiveButton(R.string.save_in_file, (d, w) -> saveTo(null))
-                .setNeutralButton(R.string.save_copy, (d, w) ->
-                        createCopy.launch(FileUtils.baseName(vm.displayName()) + "_annote.pdf"));
+                .setItems(choices.toArray(new CharSequence[0]), (d, which) -> {
+                    switch (which) {
+                        case 0:
+                            saveTo(null);
+                            break;
+                        case 1:
+                            createCopy.launch(FileUtils.baseName(vm.displayName()) + "_annote.pdf");
+                            break;
+                        case 2:
+                            discardChanges(thenFinish);
+                            break;
+                        default:
+                            finish();
+                            break;
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /**
+     * Drops the pending changes (text edits, annotations, form values) and their draft. In the reader,
+     * a snackbar can bring them back.
+     */
+    void discardChanges(boolean thenFinish) {
+        if (editUi != null && editUi.isActive()) editUi.exit();
+        AnnotationStore store = vm.editor().store();
+        String backup = store.toJson();
+        store.clear();
+        b.pages.invalidatePages();
+        invalidateOptionsMenu();
         if (thenFinish) {
-            builder.setNegativeButton(R.string.keep_draft, (d, w) -> finish());
-        } else {
-            builder.setNegativeButton(android.R.string.cancel, null);
+            finish();
+            return;
         }
-        builder.show();
+        Snackbar.make(b.root, R.string.changes_discarded, Snackbar.LENGTH_LONG)
+                .setAction(R.string.undo, v -> {
+                    store.loadJson(backup);
+                    b.pages.invalidatePages();
+                    invalidateOptionsMenu();
+                })
+                .show();
     }
 
     private void saveTo(@Nullable Uri copy) {
