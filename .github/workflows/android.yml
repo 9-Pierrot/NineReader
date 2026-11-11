@@ -40,6 +40,9 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
+      - name: Build release APK (R8, unsigned)
+        run: ./gradlew :app:assembleRelease --stacktrace
+
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:

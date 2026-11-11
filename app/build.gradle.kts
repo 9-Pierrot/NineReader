@@ -4,6 +4,15 @@ plugins {
     jacoco
 }
 
+// Version: from the release tag in CI (-PversionName=1.2.3), 0.3.0 otherwise.
+// versionCode = major * 10000 + minor * 100 + patch, so that every release is an update of the previous one.
+val appVersionName = (findProperty("versionName") as String?)?.removePrefix("v") ?: "0.3.0"
+val appVersionCode = appVersionName.split("-")[0].split(".").map { it.toIntOrNull() ?: 0 }
+    .let { (it.getOrElse(0) { 0 } * 10000) + (it.getOrElse(1) { 0 } * 100) + it.getOrElse(2) { 0 } }
+
+// Release signing key: given by the environment (GitHub secrets in the release workflow), never committed.
+val releaseKeystore = System.getenv("NR_KEYSTORE_FILE")?.let { file(it) }?.takeIf { it.exists() }
+
 android {
     namespace = "com.ninereader"
     compileSdk = 36
@@ -12,8 +21,8 @@ android {
         applicationId = "com.ninereader"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
@@ -27,11 +36,24 @@ android {
         }
     }
 
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("NR_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("NR_KEY_ALIAS")
+                keyPassword = System.getenv("NR_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             enableUnitTestCoverage = true
         }
         release {
+            // Unsigned without the key (local builds); signed in the release workflow.
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
