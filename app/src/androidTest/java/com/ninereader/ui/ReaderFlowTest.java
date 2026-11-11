@@ -70,6 +70,14 @@ public class ReaderFlowTest {
     @Test
     public void openReadSearchAnnotateAndSave() throws IOException {
         Uri uri = TestPdfs.text(context, 12, "flow.pdf");
+        // Independent of a previous run (app kept installed): first page, default zoom and reading mode.
+        com.ninereader.data.entity.DocumentEntity previous = com.ninereader.data.AppDatabase.get(context).documents().byUri(uri.toString());
+        if (previous != null) {
+            previous.lastPage = 0;
+            previous.lastZoom = 1f;
+            previous.readingMode = null;
+            com.ninereader.data.AppDatabase.get(context).documents().update(previous);
+        }
         Intent intent = new Intent(context, ReaderActivity.class).setData(uri);
         try (ActivityScenario<ReaderActivity> scenario = ActivityScenario.launch(intent)) {
             AtomicReference<ReaderViewModel> vmRef = new AtomicReference<>();
