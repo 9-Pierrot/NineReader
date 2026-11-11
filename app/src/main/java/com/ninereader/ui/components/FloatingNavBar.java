@@ -50,6 +50,21 @@ public class FloatingNavBar extends LinearLayout {
     private final int fillColor;
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF strokeBounds = new RectF();
+
+    /** Sliding pill under the selected tab: fractional tab index, NaN when the bar has none. */
+    private float indicatorPosition = Float.NaN;
+    private final Paint indicatorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF indicatorBounds = new RectF();
+    private final float indicatorRadius;
+    @Nullable
+    private android.animation.ValueAnimator indicatorAnimator;
+    @Nullable
+    private IndicatorListener indicatorListener;
+
+    /** Told of every position of the sliding pill (to tint the tabs it passes over). */
+    public interface IndicatorListener {
+        void onIndicatorMoved(float position);
+    }
     /** Drawn under the content in the blur: screen background, or the window gradient (Crystal). */
     @Nullable
     private Drawable backdrop;
@@ -101,8 +116,67 @@ public class FloatingNavBar extends LinearLayout {
             setElevation(elevation.getDimension(getResources().getDisplayMetrics()));
         }
 
+        indicatorRadius = 26 * density; // concentric with the 32 dp bar and its 6 dp padding
+        indicatorPaint.setColor(MaterialColors.getColor(this, R.attr.navBarHighlight));
         backdrop = resolveBackdrop(context);
         blurNode = BlurTargetLayout.BLUR_SUPPORTED ? Api31.create(blurRadius) : null;
+    }
+
+    public void setIndicatorListener(@Nullable IndicatorListener listener) {
+        indicatorListener = listener;
+    }
+
+    /**
+     * Moves the pill of the selected tab to a (fractional) tab index. Without animation it follows the
+     * finger during a swipe; with animation it slides there (tab chosen far away).
+     */
+    public void setIndicatorPosition(float position, boolean animate) {
+        if (indicatorAnimator != null) {
+            indicatorAnimator.cancel();
+            indicatorAnimator = null;
+        }
+        if (!animate || Float.isNaN(indicatorPosition) || !isLaidOut()) {
+            moveIndicator(position);
+            return;
+        }
+        android.animation.ValueAnimator a = android.animation.ValueAnimator.ofFloat(indicatorPosition, position);
+        a.setDuration(280);
+        a.setInterpolator(new androidx.interpolator.view.animation.FastOutSlowInInterpolator());
+        a.addUpdateListener(v -> moveIndicator((Float) v.getAnimatedValue()));
+        indicatorAnimator = a;
+        a.start();
+    }
+
+    public float indicatorPosition() {
+        return indicatorPosition;
+    }
+
+    private void moveIndicator(float position) {
+        indicatorPosition = position;
+        if (indicatorListener != null) indicatorListener.onIndicatorMoved(position);
+        invalidate();
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+        if (changed && !Float.isNaN(indicatorPosition)) invalidate();
+    }
+
+    /** Pill between the tabs around the position (their bounds interpolated). */
+    private boolean indicatorBounds() {
+        int n = getChildCount();
+        if (Float.isNaN(indicatorPosition) || n == 0) return false;
+        float pos = Math.max(0, Math.min(n - 1, indicatorPosition));
+        int i = (int) Math.floor(pos);
+        int j = Math.min(n - 1, i + 1);
+        float f = pos - i;
+        View a = getChildAt(i);
+        View b = getChildAt(j);
+        if (a.getWidth() == 0) return false;
+        indicatorBounds.set(a.getLeft() + (b.getLeft() - a.getLeft()) * f, a.getTop(),
+                a.getRight() + (b.getRight() - a.getRight()) * f, a.getBottom());
+        return true;
     }
 
     /** The content to blur under the bar. */
@@ -152,6 +226,7 @@ public class FloatingNavBar extends LinearLayout {
 
     @Override
     protected void onDetachedFromWindow() {
+        if (indicatorAnimator != null) indicatorAnimator.cancel();
         if (BlurTargetLayout.BLUR_SUPPORTED) getViewTreeObserver().removeOnPreDrawListener(updateBlur);
         super.onDetachedFromWindow();
     }
@@ -162,6 +237,8 @@ public class FloatingNavBar extends LinearLayout {
                 && Api31.draw(this, canvas);
         // 1) blur (when available)  2) theme tint  3) rim
         canvas.drawColor(blurred ? fillColor : withMinAlpha(fillColor));
+        // Pill of the selected tab, under the tabs (drawn after onDraw)
+        if (indicatorBounds()) canvas.drawRoundRect(indicatorBounds, indicatorRadius, indicatorRadius, indicatorPaint);
         if (Color.alpha(stroke.getColor()) > 0) {
             float inset = stroke.getStrokeWidth() / 2f;
             strokeBounds.set(inset, inset, getWidth() - inset, getHeight() - inset);

@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rounded pill under the selected tab of the floating bar (32 dp bar - 6 dp padding = 26 dp). -->
-<selector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:enterFadeDuration="150"
-    android:exitFadeDuration="150">
-    <item android:state_selected="true">
-        <shape>
-            <solid android:color="?attr/navBarHighlight" />
-            <corners android:radius="26dp" />
-        </shape>
-    </item>
-    <item>
-        <shape>
-            <solid android:color="@android:color/transparent" />
-            <corners android:radius="26dp" />
-        </shape>
-    </item>
-</selector>
+<!-- Shape of a tab of the floating bar: clips its ripple. The selected pill is drawn by the bar and
+     slides from tab to tab (FloatingNavBar.setIndicatorPosition). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <corners android:radius="26dp" />
+</shape>

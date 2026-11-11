@@ -24,6 +24,7 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.navigation.NavigationBarView;
 import com.ninereader.R;
 import com.ninereader.databinding.ActivityMainBinding;
@@ -130,6 +131,32 @@ public class MainActivity extends ThemedActivity {
         tabsVm.tab().observe(this, t -> {
             for (int i = 0; i < tabs.size(); i++) tabs.get(i).setSelected(t != null && t == i);
         });
+        // Sliding pill: follows the pages while swiping, slides when a far tab is chosen.
+        int inactive = MaterialColors.getColor(bar, com.google.android.material.R.attr.colorOnSurfaceVariant);
+        int active = MaterialColors.getColor(bar, R.attr.navBarSelected);
+        bar.setIndicatorListener(position -> tintTabs(position, inactive, active));
+        bar.setIndicatorPosition(tabsVm.current(), false);
+        tabsVm.scroll().observe(this, position -> {
+            if (position == null) return;
+            float shown = bar.indicatorPosition();
+            boolean jump = !Float.isNaN(shown) && Math.abs(position - shown) > 1.01f;
+            bar.setIndicatorPosition(position, jump);
+        });
+    }
+
+    /** Colour of each tab after its distance to the pill: the selected colour fades in as the pill comes. */
+    private void tintTabs(float position, int inactive, int active) {
+        for (int i = 0; i < tabs.size(); i++) {
+            float w = Math.max(0f, 1f - Math.abs(position - i));
+            int color = androidx.core.graphics.ColorUtils.blendARGB(inactive, active, w);
+            View tab = tabs.get(i);
+            ImageView icon = tab.findViewById(R.id.nav_tab_icon);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(color));
+            float scale = 1f + 0.1f * w;
+            icon.setScaleX(scale);
+            icon.setScaleY(scale);
+            ((TextView) tab.findViewById(R.id.nav_tab_label)).setTextColor(color);
+        }
     }
 
     /** Shows a main tab: back to the swipeable tabs if another screen is open, then the page. */

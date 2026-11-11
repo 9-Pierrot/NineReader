@@ -15,6 +15,17 @@ public class MainTabsViewModel extends ViewModel {
     public static final int COUNT = 4;
 
     private final MutableLiveData<Integer> tab = new MutableLiveData<>(HOME);
+    /** Scroll position of the pages (fractional tab index), for the sliding pill of the bottom bar. */
+    private final MutableLiveData<Float> scroll = new MutableLiveData<>((float) HOME);
+
+    @NonNull
+    public LiveData<Float> scroll() {
+        return scroll;
+    }
+
+    public void setScroll(float position) {
+        scroll.setValue(position);
+    }
 
     @NonNull
     public LiveData<Integer> tab() {

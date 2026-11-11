@@ -69,6 +69,11 @@ public class MainTabsFragment extends Fragment {
             public void onPageSelected(int position) {
                 tabs.select(position);
             }
+
+            @Override
+            public void onPageScrolled(int position, float offset, int offsetPixels) {
+                tabs.setScroll(position + offset);
+            }
         });
         tabs.tab().observe(getViewLifecycleOwner(), t -> {
             // Neighbouring tab: slide; farther: switch at once instead of scrolling through every page.
