@@ -55,6 +55,11 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
     private int sentenceIndex;
     private int status = TtsController.State.STOPPED;
     private int generation;
+    /** Id of the last start request: stopping with it keeps the service alive if a newer request is pending. */
+    private int lastStartId;
+    private boolean inForeground;
+    /** The speech engine could not be reached (none installed, being updated, not visible). */
+    private boolean engineFailed;
 
     @Nullable
     @Override
@@ -71,8 +76,16 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
         String action = intent == null ? null : intent.getAction();
+        lastStartId = startId;
         if (ACTION_START.equals(action)) {
-            startForegroundCompat();
+            // Requested with startForegroundService(): startForeground() must be called for this request
+            // before anything can stop the service, or Android kills the app
+            // (ForegroundServiceDidNotStartInTimeException).
+            if (!startForegroundCompat() || engineFailed) {
+                if (engineFailed) TtsController.postEngineError();
+                stopReading();
+                return START_NOT_STICKY;
+            }
             page = TtsController.startPage();
             status = TtsController.State.PLAYING;
             if (ready) {
@@ -80,6 +93,10 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
             } else {
                 pendingStart = true;
             }
+        } else if (!inForeground) {
+            // Pause / resume / stop / rate for a reading that is not running (service recreated by the
+            // command itself): nothing to control.
+            stopSelf(startId);
         } else if (ACTION_PAUSE.equals(action)) {
             status = TtsController.State.PAUSED;
             generation++;
@@ -102,6 +119,10 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
     @Override
     public void onInit(int result) {
         if (result != TextToSpeech.SUCCESS || tts == null) {
+            // May be called from onCreate, before the start request is delivered: onStartCommand then
+            // calls startForeground() first and stops the service cleanly.
+            engineFailed = true;
+            if (lastStartId == 0) return;
             TtsController.postEngineError();
             stopReading();
             return;
@@ -198,14 +219,28 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
         generation++;
         if (tts != null) tts.stop();
         TtsController.post(new TtsController.State(TtsController.State.STOPPED, page, 0, 0));
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
-        stopSelf();
+        if (inForeground) {
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
+            inForeground = false;
+        }
+        // Only if no newer request is pending: stopping a service with a pending startForegroundService()
+        // request kills the app.
+        stopSelf(lastStartId);
     }
 
-    private void startForegroundCompat() {
-        Notification n = buildNotification();
-        int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, n, type);
+    /** Puts the service in the foreground; false when the system refuses (app in the background...). */
+    private boolean startForegroundCompat() {
+        try {
+            Notification n = buildNotification();
+            int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, n, type);
+            inForeground = true;
+            return true;
+        } catch (IllegalStateException | SecurityException e) {
+            // ForegroundServiceStartNotAllowedException (Android 12+) is an IllegalStateException.
+            android.util.Log.w("TtsService", "cannot start reading in the foreground", e);
+            return false;
+        }
     }
 
     private void updateNotification() {

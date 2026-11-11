@@ -103,7 +103,12 @@ public final class TtsController {
         rate = speechRate;
         ENGINE_ERROR.setValue(false);
         Intent i = new Intent(context, TtsService.class).setAction(TtsService.ACTION_START);
-        ContextCompat.startForegroundService(context, i);
+        try {
+            ContextCompat.startForegroundService(context, i);
+        } catch (IllegalStateException | SecurityException e) {
+            // Not allowed from the background (Android 12+): report it instead of crashing.
+            ENGINE_ERROR.setValue(true);
+        }
     }
 
     public static void pause(@NonNull Context context) {
