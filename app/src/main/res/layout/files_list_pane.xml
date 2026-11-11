@@ -12,50 +12,56 @@
         app:menu="@menu/files_toolbar"
         app:title="@string/nav_files" />
 
-    <HorizontalScrollView
+    <!-- Scrolls horizontally before the tabs do -->
+    <com.ninereader.ui.components.NestedScrollableHost
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none">
+        android:layout_height="wrap_content">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/sections"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="@dimen/screen_padding"
-            app:selectionRequired="true"
-            app:singleLine="true"
-            app:singleSelection="true">
+            android:scrollbars="none">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/section_library"
-                style="@style/Widget.Material3.Chip.Filter"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/sections"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/section_library" />
+                android:paddingHorizontal="@dimen/screen_padding"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/section_folders"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/section_folders" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/section_library"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/section_library" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/section_collections"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/section_collections" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/section_folders"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_folders" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/section_trash"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/section_trash" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/section_collections"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_collections" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/section_trash"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_trash" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+    </com.ninereader.ui.components.NestedScrollableHost>
 
     <LinearLayout
         android:id="@+id/path_bar"

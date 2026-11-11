@@ -3,4 +3,5 @@
     <item name="tag_thumbnail_key" type="id" />
     <item name="tag_editor_unit" type="id" />
     <item name="tag_bottom_inset_base" type="id" />
+    <item name="main_pager" type="id" />
 </resources>

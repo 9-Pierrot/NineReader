@@ -199,25 +199,42 @@ public class ReaderFlowTest {
         }
     }
 
+    /**
+     * The main screens are side by side in a pager: the neighbouring pages exist off screen, so only the
+     * view shown on screen must match.
+     */
+    private static org.hamcrest.Matcher<android.view.View> shown(org.hamcrest.Matcher<android.view.View> m) {
+        return org.hamcrest.Matchers.allOf(m, isDisplayed());
+    }
+
     @Test
     public void mainNavigationTabs() {
         try (ActivityScenario<MainActivity> ignored = ActivityScenario.launch(MainActivity.class)) {
-            onView(withText(R.string.recent_files)).check(matches(isDisplayed()));
+            onView(shown(withText(R.string.recent_files))).check(matches(isDisplayed()));
             onView(withId(R.id.filesFragment)).perform(click());
             onView(withId(R.id.section_library)).check(matches(isDisplayed()));
             onView(withId(R.id.section_trash)).perform(scrollTo(), click());
             onView(withText(R.string.trash_retention)).check(matches(isDisplayed()));
             onView(withId(R.id.createFragment)).perform(click());
-            onView(withText(R.string.tool_images_to_pdf)).check(matches(isDisplayed()));
+            onView(shown(withText(R.string.tool_images_to_pdf))).check(matches(isDisplayed()));
             onView(withId(R.id.toolsFragment)).perform(click());
             // Category filter (Tous / Lire / ... / Organiser / Protéger)
-            onView(withText(R.string.cat_organize)).perform(scrollTo(), click());
-            onView(withText(R.string.tool_compress)).check(matches(isDisplayed()));
-            onView(withText(R.string.tool_compress)).perform(click());
+            onView(org.hamcrest.Matchers.allOf(withText(R.string.cat_organize),
+                    androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA(shown(withId(R.id.categories)))))
+                    .perform(scrollTo(), click());
+            onView(shown(withText(R.string.tool_compress))).check(matches(isDisplayed()));
+            onView(shown(withText(R.string.tool_compress))).perform(click());
             onView(withId(R.id.run)).check(matches(isDisplayed()));
             pressBack();
             onView(withId(R.id.homeFragment)).perform(click());
-            onView(withText(R.string.recent_files)).check(matches(isDisplayed()));
+            waitUntil("home shown", 5_000, () -> {
+                try {
+                    onView(shown(withText(R.string.recent_files))).check(matches(isDisplayed()));
+                    return true;
+                } catch (RuntimeException | AssertionError e) {
+                    return false;
+                }
+            });
         }
     }
 }

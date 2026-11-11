@@ -165,14 +165,20 @@
                 android:accessibilityHeading="true"
                 android:text="@string/recent_files" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recents"
+            <!-- Scrolls horizontally before the tabs do -->
+            <com.ninereader.ui.components.NestedScrollableHost
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:clipToPadding="false"
-                android:nestedScrollingEnabled="false"
-                android:orientation="horizontal" />
+                android:layout_marginTop="8dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recents"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:orientation="horizontal" />
+            </com.ninereader.ui.components.NestedScrollableHost>
 
             <LinearLayout
                 android:id="@+id/empty_state"

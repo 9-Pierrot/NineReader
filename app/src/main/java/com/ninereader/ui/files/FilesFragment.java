@@ -175,12 +175,25 @@ public class FilesFragment extends Fragment implements DocumentActions.MoveReque
                 .show();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (backCallback != null) backCallback.setEnabled(vm.canGoUp());
+    }
+
+    @Override
+    public void onPause() {
+        if (backCallback != null) backCallback.setEnabled(false);
+        super.onPause();
+    }
+
     private void updatePath() {
         String path = vm.path();
         boolean inside = vm.canGoUp();
         list.pathBar.setVisibility(inside ? View.VISIBLE : View.GONE);
         list.pathLabel.setText(path);
-        backCallback.setEnabled(inside);
+        // Only for the visible screen: the tabs keep the neighbouring screens started.
+        backCallback.setEnabled(inside && isResumed());
         list.pathAction.setVisibility(View.GONE);
         FilesViewModel.Section s = vm.section().getValue();
         if (s == FilesViewModel.Section.COLLECTIONS && !inside) {

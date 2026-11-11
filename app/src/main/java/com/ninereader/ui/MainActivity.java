@@ -22,7 +22,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.navigation.NavigationBarView;
 import com.ninereader.R;
@@ -49,9 +49,9 @@ public class MainActivity extends ThemedActivity {
     private NavController nav;
     @Nullable
     private NavHostFragment host;
-    /** Tabs of the floating bar (phone layout), with their menu items. */
+    /** Tabs of the floating bar (phone layout). */
     private final List<View> tabs = new ArrayList<>();
-    private final List<MenuItem> tabItems = new ArrayList<>();
+    private MainTabsViewModel tabsVm;
     private boolean topLevel = true;
     private boolean imeVisible;
     private int lastInsetsBottom;
@@ -65,12 +65,22 @@ public class MainActivity extends ThemedActivity {
         host = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host);
         if (host == null) return;
         nav = host.getNavController();
+        tabsVm = new ViewModelProvider(this).get(MainTabsViewModel.class);
         if (binding.floatingNav != null) {
             setupFloatingBar(binding.floatingNav);
         } else if (binding.navRail != null) {
             NavigationBarView rail = binding.navRail;
-            NavigationUI.setupWithNavController(rail, nav);
-            rail.setOnItemReselectedListener(item -> nav.popBackStack(item.getItemId(), false));
+            Menu menu = rail.getMenu();
+            rail.setOnItemSelectedListener(item -> {
+                for (int i = 0; i < menu.size(); i++) if (menu.getItem(i) == item) selectTab(i);
+                return true;
+            });
+            rail.setOnItemReselectedListener(item -> selectTab(tabsVm.current()));
+            tabsVm.tab().observe(this, t -> {
+                if (t != null && t < menu.size() && rail.getSelectedItemId() != menu.getItem(t).getItemId()) {
+                    rail.setSelectedItemId(menu.getItem(t).getItemId());
+                }
+            });
         }
         nav.addOnDestinationChangedListener((controller, dest, args) -> onDestinationChanged(dest));
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
@@ -98,10 +108,10 @@ public class MainActivity extends ThemedActivity {
             ((TextView) tab.findViewById(R.id.nav_tab_label)).setText(item.getTitle());
             tab.setContentDescription(item.getTitle());
             tab.setClipToOutline(true); // the ripple follows the rounded pill
-            tab.setOnClickListener(v -> onTabClicked(item));
+            int index = i;
+            tab.setOnClickListener(v -> selectTab(index));
             bar.addView(tab);
             tabs.add(tab);
-            tabItems.add(item);
         }
         if (binding.barContainer != null) {
             binding.barContainer.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
@@ -115,25 +125,18 @@ public class MainActivity extends ThemedActivity {
                 public void onFragmentViewCreated(@NonNull FragmentManager fm, @NonNull Fragment f, @NonNull View v, @Nullable Bundle state) {
                     BottomInsets.apply(v, contentInset());
                 }
-            }, false);
+            }, true); // recursive: the screens of the tabs are children of MainTabsFragment
         }
+        tabsVm.tab().observe(this, t -> {
+            for (int i = 0; i < tabs.size(); i++) tabs.get(i).setSelected(t != null && t == i);
+        });
     }
 
-    private void onTabClicked(@NonNull MenuItem item) {
+    /** Shows a main tab: back to the swipeable tabs if another screen is open, then the page. */
+    private void selectTab(int index) {
         NavDestination current = nav.getCurrentDestination();
-        if (current != null && current.getId() == item.getItemId()) {
-            return; // already there
-        }
-        if (isInHierarchy(current, item.getItemId())) {
-            nav.popBackStack(item.getItemId(), false); // reselect: back to the root of the tab
-        } else {
-            NavigationUI.onNavDestinationSelected(item, nav);
-        }
-    }
-
-    private static boolean isInHierarchy(@Nullable NavDestination dest, int id) {
-        for (NavDestination d = dest; d != null; d = d.getParent()) if (d.getId() == id) return true;
-        return false;
+        if (current == null || current.getId() != R.id.mainTabsFragment) nav.popBackStack(R.id.mainTabsFragment, false);
+        tabsVm.select(index);
     }
 
     /** Height the scrolling content must leave free under the floating bar. */
@@ -175,8 +178,7 @@ public class MainActivity extends ThemedActivity {
 
     private void onDestinationChanged(@NonNull NavDestination dest) {
         int id = dest.getId();
-        topLevel = id == R.id.homeFragment || id == R.id.filesFragment || id == R.id.createFragment || id == R.id.toolsFragment;
-        for (int i = 0; i < tabs.size(); i++) tabs.get(i).setSelected(isInHierarchy(dest, tabItems.get(i).getItemId()));
+        topLevel = id == R.id.mainTabsFragment;
         // The rail stays visible on tablets: plenty of horizontal space.
         if (binding.barContainer != null) ViewCompat.requestApplyInsets(binding.getRoot());
     }

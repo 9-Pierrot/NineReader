@@ -2,27 +2,13 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/mainTabsFragment">
 
+    <!-- Home, Files, Create and Tools side by side, swipeable (MainTabsFragment) -->
     <fragment
-        android:id="@+id/homeFragment"
-        android:name="com.ninereader.ui.home.HomeFragment"
-        android:label="@string/nav_home" />
-
-    <fragment
-        android:id="@+id/filesFragment"
-        android:name="com.ninereader.ui.files.FilesFragment"
-        android:label="@string/nav_files" />
-
-    <fragment
-        android:id="@+id/createFragment"
-        android:name="com.ninereader.ui.create.CreateFragment"
-        android:label="@string/nav_create" />
-
-    <fragment
-        android:id="@+id/toolsFragment"
-        android:name="com.ninereader.ui.tools.ToolsFragment"
-        android:label="@string/nav_tools" />
+        android:id="@+id/mainTabsFragment"
+        android:name="com.ninereader.ui.MainTabsFragment"
+        android:label="@string/app_name" />
 
     <fragment
         android:id="@+id/toolRunFragment"

@@ -123,6 +123,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.core)
